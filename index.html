@@ -266,6 +266,79 @@ window.completeSale=async function(method){
 };
 })();
 </script>
+<!-- MOROCHAS_SUPABASE_CASH_V1 -->
+<script>
+(()=>{
+let currentCashSession=null;
+function cashMoney(n){return fmt(+n||0)}
+async function loadCloudCash(){
+ const sb=window.morochasSupabase;
+ if(!sb||!window.MOROCHAS_USER)return;
+ const {data,error}=await sb.from('cash_sessions').select('*').eq('estado','abierta').order('apertura',{ascending:false}).limit(1).maybeSingle();
+ if(error){toast('Error cargando caja: '+error.message);return}
+ currentCashSession=data||null;
+ const opening=document.getElementById('cashOpening'), counted=document.getElementById('counted');
+ if(!opening||!counted)return;
+ if(!currentCashSession){
+   opening.disabled=false; counted.disabled=true;
+   document.querySelector('#caja .btn.primary').textContent='Abrir caja';
+   document.querySelector('#caja .btn.primary').disabled=false;
+   document.getElementById('cashSummary').innerHTML='<div class="empty">No hay una caja abierta. Ingresa el fondo inicial y pulsa <b>Abrir caja</b>.</div>';
+   return;
+ }
+ opening.value=+currentCashSession.fondo_inicial||0; opening.disabled=true; counted.disabled=false;
+ const {data:salesRows,error:salesErr}=await sb.from('sales').select('total').eq('metodo_pago','efectivo').gte('created_at',currentCashSession.apertura);
+ if(salesErr){toast('Error calculando efectivo: '+salesErr.message);return}
+ const cashSales=(salesRows||[]).reduce((a,x)=>a+(+x.total||0),0);
+ const expected=(+currentCashSession.fondo_inicial||0)+cashSales;
+ const n=+counted.value||0, diff=n-expected;
+ const main=document.querySelector('#caja .btn.primary');
+ main.textContent='Caja abierta'; main.disabled=true;
+ let close=document.getElementById('closeCashBtn');
+ if(!close){close=document.createElement('button');close.id='closeCashBtn';close.className='btn red';close.style.marginLeft='8px';close.textContent='Cerrar caja';main.insertAdjacentElement('afterend',close);close.onclick=closeCloudCash}
+ close.style.display='';
+ document.getElementById('cashSummary').innerHTML=
+ '<div class="row"><span>Estado</span><b class="ok">ABIERTA</b></div>'+
+ '<div class="row"><span>Fondo inicial</span><b>'+cashMoney(currentCashSession.fondo_inicial)+'</b></div>'+
+ '<div class="row"><span>Ventas efectivo desde apertura</span><b>'+cashMoney(cashSales)+'</b></div>'+
+ '<div class="row"><span>Efectivo esperado</span><b>'+cashMoney(expected)+'</b></div>'+
+ '<div class="row"><span>Efectivo contado</span><b>'+ (n?cashMoney(n):'—') +'</b></div>'+
+ '<div class="row"><span>Diferencia</span><b class="'+(n?(diff>=0?'ok':'bad'):'')+'">'+(n?cashMoney(diff):'—')+'</b></div>';
+ window.MOROCHAS_CASH_EXPECTED=expected;
+}
+async function openCloudCash(){
+ const sb=window.morochasSupabase;if(!sb||!window.MOROCHAS_USER)return toast('Sesión no disponible');
+ if(currentCashSession)return toast('Ya existe una caja abierta');
+ const opening=+document.getElementById('cashOpening').value||0;
+ if(opening<0)return toast('El fondo inicial no puede ser negativo');
+ const {error}=await sb.from('cash_sessions').insert({opened_by:window.MOROCHAS_USER.id,fondo_inicial:opening,estado:'abierta'});
+ if(error)return toast('No se pudo abrir la caja: '+error.message);
+ document.getElementById('counted').value='';await loadCloudCash();toast('Caja abierta en Supabase');
+}
+async function closeCloudCash(){
+ if(!currentCashSession)return toast('No hay caja abierta');
+ const counted=+document.getElementById('counted').value;
+ if(!Number.isFinite(counted)||counted<0)return toast('Ingresa el efectivo contado');
+ if(!confirm('¿Cerrar la caja con '+cashMoney(counted)+' contados?'))return;
+ const expected=+window.MOROCHAS_CASH_EXPECTED||0;
+ const {error}=await window.morochasSupabase.from('cash_sessions').update({
+   closed_by:window.MOROCHAS_USER.id,cierre:new Date().toISOString(),
+   efectivo_esperado:expected,efectivo_contado:counted,diferencia:counted-expected,estado:'cerrada'
+ }).eq('id',currentCashSession.id);
+ if(error)return toast('No se pudo cerrar la caja: '+error.message);
+ currentCashSession=null;document.getElementById('cashOpening').value='';document.getElementById('counted').value='';
+ const close=document.getElementById('closeCashBtn');if(close)close.style.display='none';
+ await loadCloudCash();toast('Caja cerrada correctamente');
+}
+window.saveCash=openCloudCash;
+window.renderCash=function(){loadCloudCash()};
+window.loadCloudCash=loadCloudCash;
+const oldShowCash=window.showView;
+if(typeof oldShowCash==='function')window.showView=function(id,btn){oldShowCash(id,btn);if(id==='caja')loadCloudCash()};
+const timer=setInterval(()=>{if(window.MOROCHAS_USER&&window.morochasSupabase){clearInterval(timer);loadCloudCash()}},300);
+setTimeout(()=>clearInterval(timer),15000);
+})();
+</script>
 <!-- MOROCHAS_SUPABASE_AUTH_V1 -->
 <style>
 #authGate{position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#15130f,#2b241b);display:flex;align-items:center;justify-content:center;padding:20px}
