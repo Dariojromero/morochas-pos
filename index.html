@@ -167,6 +167,62 @@ const timer=setInterval(()=>{if(window.MOROCHAS_USER&&window.morochasSupabase){c
 setTimeout(()=>clearInterval(timer),15000);
 })();
 </script>
+<!-- MOROCHAS_SUPABASE_SUMMARY_V1 -->
+<script>
+(()=>{
+function chileDayBounds(){
+ const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Santiago',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+ const get=t=>parts.find(x=>x.type===t).value;
+ const y=+get('year'),m=+get('month'),d=+get('day');
+ // Chile offset is derived by formatting a UTC probe in Santiago.
+ const probe=new Date(Date.UTC(y,m-1,d,12));
+ const tzParts=new Intl.DateTimeFormat('en-US',{timeZone:'America/Santiago',hour12:false,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}).formatToParts(probe);
+ const v=t=>+tzParts.find(x=>x.type===t).value;
+ const asUTC=Date.UTC(v('year'),v('month')-1,v('day'),v('hour')===24?0:v('hour'),v('minute'),v('second'));
+ const offset=asUTC-probe.getTime();
+ const start=new Date(Date.UTC(y,m-1,d)-offset);
+ const end=new Date(start.getTime()+86400000);
+ return {start:start.toISOString(),end:end.toISOString()};
+}
+async function loadCloudSummary(){
+ const sb=window.morochasSupabase;
+ if(!sb||!window.MOROCHAS_USER)return;
+ const {start,end}=chileDayBounds();
+ const {data:rows,error}=await sb.from('sales')
+  .select('id,numero,metodo_pago,total,created_at,sale_items(producto_nombre,cantidad,precio_unitario,costo_unitario,subtotal)')
+  .gte('created_at',start).lt('created_at',end).order('created_at',{ascending:true});
+ if(error){toast('Error cargando resumen: '+error.message);return}
+ const ds=rows||[], by={},rank={};
+ let rev=0,cost=0;
+ ds.forEach(s=>{
+  const total=+s.total||0; rev+=total;
+  const label=({efectivo:'Efectivo',tuu:'TUU',transferencia:'Transferencia',credito:'Crédito',webpay:'Webpay',otro:'Otro'})[s.metodo_pago]||s.metodo_pago||'Otro';
+  by[label]=(by[label]||0)+total;
+  (s.sale_items||[]).forEach(i=>{const q=+i.cantidad||0; cost+=(+i.costo_unitario||0)*q; rank[i.producto_nombre]=(rank[i.producto_nombre]||0)+q});
+ });
+ const top=Object.entries(rank).sort((a,b)=>b[1]-a[1])[0];
+ document.getElementById('todayLabel').textContent=new Intl.DateTimeFormat('es-CL',{timeZone:'America/Santiago',dateStyle:'short'}).format(new Date());
+ document.getElementById('summaryCards').innerHTML=
+  '<div class="card accent"><span class="label">Ventas de hoy</span><strong>'+fmt(rev)+'</strong></div>'+
+  '<div class="card accent"><span class="label">Margen bruto estimado</span><strong>'+fmt(rev-cost)+'</strong></div>'+
+  '<div class="card"><span class="label">Costo vendido</span><strong>'+fmt(cost)+'</strong></div>'+
+  '<div class="card"><span class="label">Producto más vendido</span><strong>'+(top?esc(top[0]):'—')+'</strong></div>'+
+  '<div class="card"><span class="label">Operaciones</span><strong>'+ds.length+'</strong></div>'+
+  '<div class="card"><span class="label">Efectivo vendido</span><strong>'+fmt(by.Efectivo||0)+'</strong></div>';
+ document.getElementById('paySummary').innerHTML=Object.entries(by).map(([k,v])=>'<div class="row"><span>'+esc(k)+'</span><b>'+fmt(v)+'</b></div>').join('')||'<div class="empty">Sin ventas hoy</div>';
+ document.getElementById('rankSummary').innerHTML=Object.entries(rank).sort((a,b)=>b[1]-a[1]).slice(0,10).map((x,i)=>'<div class="row"><span>'+(i+1)+'. '+esc(x[0])+'</span><b>'+x[1]+' un.</b></div>').join('')||'<div class="empty">Sin ventas hoy</div>';
+ window.MOROCHAS_TODAY_SALES=ds;
+}
+window.loadCloudSummary=loadCloudSummary;
+window.renderSummary=function(){loadCloudSummary()};
+
+const oldShow=window.showView;
+if(typeof oldShow==='function')window.showView=function(id,btn){oldShow(id,btn);if(id==='resumen')loadCloudSummary()};
+
+const timer=setInterval(()=>{if(window.MOROCHAS_USER&&window.morochasSupabase){clearInterval(timer);loadCloudSummary()}},250);
+setTimeout(()=>clearInterval(timer),15000);
+})();
+</script>
 <!-- MOROCHAS_SUPABASE_SALES_V1 -->
 <script>
 (()=>{
@@ -200,7 +256,7 @@ window.completeSale=async function(method){
   put('sales',sales);
   cart=[];
   if(window.loadCloudProducts)await window.loadCloudProducts();else renderSale();
-  renderSummary();renderCash();
+  if(window.loadCloudSummary)await window.loadCloudSummary();else renderSummary();renderCash();
   toast('Venta registrada en Supabase · '+method);
  }catch(e){
   toast('Error al registrar venta: '+(e?.message||e));
