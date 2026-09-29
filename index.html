@@ -75,6 +75,21 @@ function resetData(){if(!confirm('Esto borrará todos los datos del POS 3.0. ¿C
 function init(){document.getElementById('reportMonth').value=today().slice(0,7);document.getElementById('todayLabel').textContent=today();document.querySelector('[data-view="venta"]').classList.add('active');renderSale();renderSummary();renderCash();renderExpenses()}
 init();
 </script><script>document.getElementById('todayLabel').textContent=today(); document.getElementById('stockProduct').innerHTML=products.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join(''); const _renderInv=renderInventory; renderInventory=function(){document.getElementById('stockProduct').innerHTML=products.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');_renderInv()}; const _renderSum=renderSummary; renderSummary=function(){document.getElementById('todayLabel').textContent=today();_renderSum()}; document.querySelector('[data-view="venta"]').classList.add('active');</script>
+<script>
+function renderAll(){
+  renderSale();
+  renderSummary();
+  renderCash();
+  renderExpenses();
+  renderInventory();
+  renderPurchases();
+  renderSuppliers();
+  renderCustomers();
+  renderRecipes();
+  renderReports();
+  renderConfig();
+}
+</script>
 <!-- MOROCHAS_SUPABASE_PRODUCTS_V1 -->
 <script>
 (()=>{
