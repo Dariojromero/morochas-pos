@@ -75,6 +75,83 @@ function resetData(){if(!confirm('Esto borrará todos los datos del POS 3.0. ¿C
 function init(){document.getElementById('reportMonth').value=today().slice(0,7);document.getElementById('todayLabel').textContent=today();document.querySelector('[data-view="venta"]').classList.add('active');renderSale();renderSummary();renderCash();renderExpenses()}
 init();
 </script><script>document.getElementById('todayLabel').textContent=today(); document.getElementById('stockProduct').innerHTML=products.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join(''); const _renderInv=renderInventory; renderInventory=function(){document.getElementById('stockProduct').innerHTML=products.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');_renderInv()}; const _renderSum=renderSummary; renderSummary=function(){document.getElementById('todayLabel').textContent=today();_renderSum()}; document.querySelector('[data-view="venta"]').classList.add('active');</script>
+<!-- MOROCHAS_SUPABASE_PRODUCTS_V1 -->
+<script>
+(()=>{
+function mapCloudProduct(p){
+ const old=products.find(x=>x.name===p.nombre);
+ return {id:p.id,name:p.nombre,cat:p.categoria||'General',price:+p.precio||0,cost:+p.costo||0,
+ stock:+p.stock||0,minStock:+p.stock_minimo||0,unit:p.unidad||'un',
+ image:p.imagen_url||old?.image||'',emoji:old?.emoji||'🥐',active:p.activo!==false,
+ track:true,type:'finished',ventaOnline:!!p.venta_online,destacado:!!p.destacado};
+}
+async function loadCloudProducts(){
+ const sb=window.morochasSupabase;
+ if(!sb||!window.MOROCHAS_USER)return;
+ const {data,error}=await sb.rpc('get_staff_products');
+ if(error){toast('Error cargando productos: '+error.message);return}
+ products=(data||[]).map(mapCloudProduct);
+ put('products',products);
+ renderAll();
+}
+window.loadCloudProducts=loadCloudProducts;
+
+window.saveProduct=async function(){
+ const id=document.getElementById('editProductId').value,p=products.find(x=>x.id===id);
+ if(!p)return toast('Producto no encontrado');
+ const desiredStock=+document.getElementById('epStock').value||0;
+ const patch={
+  nombre:document.getElementById('epName').value.trim()||'Producto',
+  categoria:document.getElementById('epCat').value.trim()||'General',
+  precio:+document.getElementById('epPrice').value||0,
+  costo:+document.getElementById('epCost').value||0,
+  stock_minimo:+document.getElementById('epMin').value||0,
+  unidad:document.getElementById('epUnit').value.trim()||'un',
+  activo:document.getElementById('epActive').checked
+ };
+ const sb=window.morochasSupabase;
+ const {error}=await sb.from('products').update(patch).eq('id',id);
+ if(error)return toast('No se pudo guardar: '+error.message);
+ const delta=desiredStock-(+p.stock||0);
+ if(delta){
+  const r=await sb.rpc('adjust_product_stock',{p_product_id:id,p_quantity:delta,p_note:'Corrección desde ficha de producto'});
+  if(r.error)return toast('Datos guardados, pero falló stock: '+r.error.message);
+ }
+ closeModal('productModal');await loadCloudProducts();toast('Producto guardado en Supabase');
+};
+
+window.toggleProductStatus=async function(){
+ const id=document.getElementById('editProductId').value,p=products.find(x=>x.id===id);
+ if(!p)return;
+ const {error}=await window.morochasSupabase.from('products').update({activo:p.active===false}).eq('id',id);
+ if(error)return toast('No se pudo cambiar estado: '+error.message);
+ closeModal('productModal');await loadCloudProducts();
+ toast(p.active===false?'Producto reactivado':'Producto dado de baja');
+};
+
+window.adjustStock=async function(){
+ const id=document.getElementById('stockProduct').value,q=+document.getElementById('stockQty').value||0;
+ const note=document.getElementById('stockNote').value.trim()||'Ajuste manual';
+ if(!id||!q)return toast('Indica producto y cantidad');
+ const {error}=await window.morochasSupabase.rpc('adjust_product_stock',{p_product_id:id,p_quantity:q,p_note:note});
+ if(error)return toast('No se pudo ajustar stock: '+error.message);
+ document.getElementById('stockQty').value='';document.getElementById('stockNote').value='';
+ await loadCloudProducts();toast('Stock actualizado en Supabase');
+};
+
+window.newProduct=async function(){
+ const {data,error}=await window.morochasSupabase.from('products').insert({
+  nombre:'Nuevo producto',categoria:'General',precio:0,costo:0,stock:0,stock_minimo:0,
+  unidad:'un',activo:true,venta_online:false,destacado:false
+ }).select('id').single();
+ if(error)return toast('No se pudo crear: '+error.message);
+ await loadCloudProducts();editProduct(data.id);
+};
+
+const timer=setInterval(()=>{if(window.MOROCHAS_USER&&window.morochasSupabase){clearInterval(timer);loadCloudProducts()}},200);
+setTimeout(()=>clearInterval(timer),15000);
+})();
+</script>
 <!-- MOROCHAS_SUPABASE_AUTH_V1 -->
 <style>
 #authGate{position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#15130f,#2b241b);display:flex;align-items:center;justify-content:center;padding:20px}
