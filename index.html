@@ -74,4 +74,78 @@ function closeModal(id){document.getElementById(id).classList.remove('show')}
 function resetData(){if(!confirm('Esto borrará todos los datos del POS 3.0. ¿Continuar?'))return;Object.keys(localStorage).filter(k=>k.startsWith(KEY)).forEach(k=>localStorage.removeItem(k));location.reload()}
 function init(){document.getElementById('reportMonth').value=today().slice(0,7);document.getElementById('todayLabel').textContent=today();document.querySelector('[data-view="venta"]').classList.add('active');renderSale();renderSummary();renderCash();renderExpenses()}
 init();
-</script><script>document.getElementById('todayLabel').textContent=today(); document.getElementById('stockProduct').innerHTML=products.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join(''); const _renderInv=renderInventory; renderInventory=function(){document.getElementById('stockProduct').innerHTML=products.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');_renderInv()}; const _renderSum=renderSummary; renderSummary=function(){document.getElementById('todayLabel').textContent=today();_renderSum()}; document.querySelector('[data-view="venta"]').classList.add('active');</script></body></html>
+</script><script>document.getElementById('todayLabel').textContent=today(); document.getElementById('stockProduct').innerHTML=products.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join(''); const _renderInv=renderInventory; renderInventory=function(){document.getElementById('stockProduct').innerHTML=products.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');_renderInv()}; const _renderSum=renderSummary; renderSummary=function(){document.getElementById('todayLabel').textContent=today();_renderSum()}; document.querySelector('[data-view="venta"]').classList.add('active');</script>
+<!-- MOROCHAS_SUPABASE_AUTH_V1 -->
+<style>
+#authGate{position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#15130f,#2b241b);display:flex;align-items:center;justify-content:center;padding:20px}
+#authGate.hidden{display:none}
+.authbox{width:min(430px,100%);background:#fffaf0;border:1px solid #c99435;border-radius:18px;padding:26px;box-shadow:0 24px 70px #0008;text-align:center}
+.authbox h2{margin:8px 0 4px}.authbox p{color:#756b5e;margin:0 0 18px}.authbox input{margin:6px 0 10px}.autherr{min-height:22px;color:#a9473e;font-size:13px;margin-top:10px}
+#userBadge{margin-left:auto;color:#f4ead8;font-size:12px;display:none;align-items:center;gap:8px}
+#userBadge button{border:1px solid #725f43;background:#332c25;color:#f4ead8;border-radius:8px;padding:6px 9px}
+@media(max-width:650px){#userBadge span{display:none}}
+</style>
+<div id="authGate">
+  <div class="authbox">
+    <div style="font-size:42px">🥐</div>
+    <h2>Morochas Bakery</h2>
+    <p>POS 3.1 · Acceso de personal</p>
+    <input id="authEmail" type="email" autocomplete="username" placeholder="Correo electrónico">
+    <input id="authPassword" type="password" autocomplete="current-password" placeholder="Contraseña">
+    <button class="btn gold" style="width:100%;margin-top:6px" id="authLoginBtn">Ingresar</button>
+    <div class="autherr" id="authError"></div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(()=>{
+const SUPABASE_URL='https://iknrzhxigrlbvlrmucc.supabase.co';
+const SUPABASE_KEY='sb_publishable_ouqoqDbomG4l6VAE9kcnLw_sK_CFfiF';
+const gate=document.getElementById('authGate'), err=document.getElementById('authError'), btn=document.getElementById('authLoginBtn');
+let client=null;
+function setErr(m){err.textContent=m||''}
+function ensureBadge(){
+  let b=document.getElementById('userBadge');
+  if(!b){
+    b=document.createElement('div'); b.id='userBadge';
+    b.innerHTML='<span id="userBadgeText"></span><button id="logoutBtn">Salir</button>';
+    const brand=document.querySelector('.brand'); if(brand) brand.appendChild(b);
+    document.getElementById('logoutBtn').onclick=async()=>{if(client)await client.auth.signOut();location.reload()};
+  }
+  return b;
+}
+async function authorize(session){
+  if(!session?.user){gate.classList.remove('hidden');return false}
+  const {data,error}=await client.from('profiles').select('nombre,rol,activo').eq('id',session.user.id).maybeSingle();
+  if(error){setErr('No se pudo validar el perfil: '+error.message);gate.classList.remove('hidden');return false}
+  if(!data){setErr('Este usuario no tiene perfil habilitado.');await client.auth.signOut();gate.classList.remove('hidden');return false}
+  if(data.activo!==true){setErr('Este usuario está desactivado.');await client.auth.signOut();gate.classList.remove('hidden');return false}
+  gate.classList.add('hidden');
+  const b=ensureBadge(); b.style.display='flex';
+  document.getElementById('userBadgeText').textContent=(data.nombre||session.user.email)+' · '+(data.rol||'usuario');
+  window.MOROCHAS_USER={id:session.user.id,email:session.user.email,nombre:data.nombre,rol:data.rol,activo:data.activo};
+  return true;
+}
+async function boot(){
+  if(!window.supabase){setErr('No se pudo cargar la conexión con Supabase.');return}
+  client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+  window.morochasSupabase=client;
+  const {data}=await client.auth.getSession();
+  await authorize(data.session);
+  client.auth.onAuthStateChange(async(ev,session)=>{if(ev==='SIGNED_OUT'){gate.classList.remove('hidden');ensureBadge().style.display='none'}else if(session)await authorize(session)});
+}
+btn.onclick=async()=>{
+  setErr(''); const email=document.getElementById('authEmail').value.trim(), password=document.getElementById('authPassword').value;
+  if(!email||!password){setErr('Ingresa correo y contraseña.');return}
+  btn.disabled=true; btn.textContent='Ingresando...';
+  try{
+    const {data,error}=await client.auth.signInWithPassword({email,password});
+    if(error){setErr(error.message==='Invalid login credentials'?'Correo o contraseña incorrectos.':error.message);return}
+    await authorize(data.session);
+  }finally{btn.disabled=false;btn.textContent='Ingresar'}
+};
+document.getElementById('authPassword').addEventListener('keydown',e=>{if(e.key==='Enter')btn.click()});
+boot();
+})();
+</script>
+</body></html>
