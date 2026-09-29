@@ -152,6 +152,49 @@ const timer=setInterval(()=>{if(window.MOROCHAS_USER&&window.morochasSupabase){c
 setTimeout(()=>clearInterval(timer),15000);
 })();
 </script>
+<!-- MOROCHAS_SUPABASE_SALES_V1 -->
+<script>
+(()=>{
+const paymentMap={'Efectivo':'efectivo','TUU':'tuu','Transferencia':'transferencia','Crédito':'credito'};
+window.completeSale=async function(method){
+ if(!cart.length)return toast('Agrega productos antes de cobrar');
+ const sb=window.morochasSupabase;
+ if(!sb||!window.MOROCHAS_USER)return toast('Sesión no disponible');
+ let customerId=null;
+ if(method==='Crédito'){
+  customerId=document.getElementById('saleCustomer').value;
+  if(!customerId)return toast('Selecciona un cliente');
+  // Crédito todavía depende del módulo local de clientes; no se enviará
+  // hasta centralizar clientes/créditos para evitar IDs incompatibles.
+  return toast('Crédito cliente se conectará en la siguiente fase');
+ }
+ const dbMethod=paymentMap[method];
+ if(!dbMethod)return toast('Método de pago no válido');
+ const snapshot=cart.map(x=>({id:x.id,name:x.name,qty:+x.qty,price:+x.price,cost:+x.cost}));
+ const total=sum(snapshot.map(x=>x.price*x.qty));
+ const payload=snapshot.map(x=>({product_id:x.id,qty:x.qty}));
+ const buttons=[...document.querySelectorAll('#venta button')];
+ buttons.forEach(b=>b.disabled=true);
+ try{
+  const {data:saleId,error}=await sb.rpc('create_pos_sale',{
+   p_payment_method:dbMethod,p_items:payload,p_customer_id:null
+  });
+  if(error)return toast('Venta no registrada: '+error.message);
+  sales.push({id:saleId,date:today(),time:new Date().toLocaleTimeString('es-CL'),
+   method,total,customerId:null,items:snapshot});
+  put('sales',sales);
+  cart=[];
+  if(window.loadCloudProducts)await window.loadCloudProducts();else renderSale();
+  renderSummary();renderCash();
+  toast('Venta registrada en Supabase · '+method);
+ }catch(e){
+  toast('Error al registrar venta: '+(e?.message||e));
+ }finally{
+  buttons.forEach(b=>b.disabled=false);
+ }
+};
+})();
+</script>
 <!-- MOROCHAS_SUPABASE_AUTH_V1 -->
 <style>
 #authGate{position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#15130f,#2b241b);display:flex;align-items:center;justify-content:center;padding:20px}
