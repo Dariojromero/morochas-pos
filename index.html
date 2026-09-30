@@ -9,7 +9,7 @@
 <section id="gastos" class="view"><div class="hero"><div><h2>Gastos y salidas de dinero</h2><div class="sub">Cada salida afecta el cuadre de caja y el resultado.</div></div></div><div class="panel"><div class="formgrid"><label>Concepto<input id="expenseConcept" placeholder="Ej: compra de hielo"></label><label>Monto<input id="expenseAmount" type="number"></label></div><label>Categoría<select id="expenseCat"><option>Operación</option><option>Proveedor</option><option>Transporte</option><option>Servicios</option><option>Personal</option><option>Otro</option></select></label><button class="btn primary" onclick="addExpense()">Registrar salida</button></div><div class="panel"><h3>Salidas de hoy</h3><div id="expenseList"></div></div></section>
 <section id="inventario" class="view"><div class="hero"><div><h2>Inventario</h2><div class="sub" id="inventoryKpi"></div></div><div class="actions"><button class="btn gold" onclick="newProduct()">+ Producto</button><button class="btn" onclick="createRaw()">+ Materia prima</button></div></div><div class="panel"><div class="formgrid3"><label>Producto<select id="stockProduct"></select></label><label>Ajuste (+ / −)<input id="stockQty" type="number" step="0.001"></label><label>Motivo<input id="stockNote" placeholder="Conteo, merma, ajuste..."></label></div><button class="btn primary" onclick="adjustStock()">Aplicar ajuste</button></div><div class="tablewrap" id="inventoryTable"></div></section>
 <section id="compras" class="view"><div class="hero"><div><h2>Compras</h2><div class="sub">Ingreso de mercadería y materias primas.</div></div></div><div class="panel"><div class="formgrid3"><label>Proveedor<select id="purchaseSupplier"></select></label><label>Producto<select id="purchaseProduct"></select></label><label>Cantidad<input id="purchaseQty" type="number" step="0.001"></label></div><div class="formgrid"><label>Total compra<input id="purchaseTotal" type="number"></label><label style="padding-top:24px"><input id="purchasePaid" type="checkbox" style="width:auto"> Pagada al momento</label></div><button class="btn primary" onclick="addPurchase()">Registrar compra</button></div><div class="tablewrap"><table class="table"><thead><tr><th>Fecha</th><th>Proveedor</th><th>Producto</th><th>Cantidad</th><th>Total</th><th>Estado</th></tr></thead><tbody id="purchaseTable"></tbody></table></div></section>
-<section id="proveedores" class="view"><div class="hero"><div><h2>Proveedores</h2><div class="sub">Cuentas por pagar y pagos.</div></div></div><div class="panel"><div class="formgrid"><label>Proveedor<input id="supplierName"></label><label>Contacto / teléfono<input id="supplierContact"></label></div><button class="btn primary" onclick="addSupplier()">Agregar proveedor</button></div><div class="tablewrap"><table class="table"><thead><tr><th>Proveedor</th><th>Contacto</th><th>Saldo pendiente</th><th>Acción</th></tr></thead><tbody id="supplierTable"></tbody></table></div></section>
+<section id="proveedores" class="view"><div class="hero"><div><h2>Proveedores</h2><div class="sub">Ficha de proveedores, cuentas por pagar y estado.</div></div></div><div class="panel"><input id="supplierId" type="hidden"><div class="formgrid3"><label>Nombre / razón social<input id="supplierName" placeholder="Ej. Distribuidora Central"></label><label>RUT<input id="supplierRut" placeholder="Ej. 76.123.456-7"></label><label>Teléfono<input id="supplierPhone" placeholder="+56 9..."></label><label>Email<input id="supplierEmail" type="email" placeholder="ventas@proveedor.cl"></label><label style="grid-column:span 2">Dirección<input id="supplierAddress" placeholder="Dirección del proveedor"></label></div><div class="actions"><button class="btn primary" id="supplierSaveBtn" onclick="saveCloudSupplier()">Agregar proveedor</button><button class="btn" id="supplierCancelBtn" onclick="cancelSupplierEdit()" style="display:none">Cancelar edición</button></div></div><div class="tablewrap"><table class="table"><thead><tr><th>Proveedor</th><th>RUT</th><th>Teléfono</th><th>Email</th><th>Dirección</th><th>Saldo pendiente</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="supplierTable"></tbody></table></div></section>
 <section id="clientes" class="view"><div class="hero"><div><h2>Clientes y créditos</h2><div class="sub">Registra ventas a crédito, deuda y abonos.</div></div></div><div class="panel"><div class="formgrid3"><label>Cliente<input id="customerName"></label><label>Teléfono<input id="customerPhone"></label><label>Límite de crédito<input id="customerLimit" type="number"></label></div><button class="btn primary" onclick="addCustomer()">Agregar cliente</button></div><div class="tablewrap"><table class="table"><thead><tr><th>Cliente</th><th>Teléfono</th><th>Límite</th><th>Deuda</th><th></th></tr></thead><tbody id="customerTable"></tbody></table></div><div class="panel"><h3>Movimientos de crédito</h3><div class="tablewrap"><table class="table"><thead><tr><th>Fecha</th><th>Cliente</th><th>Monto</th><th>Estado</th></tr></thead><tbody id="creditTable"></tbody></table></div></div></section>
 <section id="recetas" class="view"><div class="hero"><div><h2>Recetas y producción</h2><div class="sub">La producción consume materias primas y aumenta producto terminado.</div></div></div><div class="panel"><h3>Nueva receta</h3><div class="formgrid3"><label>Producto terminado<select id="recipeProduct"></select></label><label>Rendimiento<input id="recipeOutput" type="number" step="0.001"></label><label>Ingrediente<select id="ingredientProduct"></select></label></div><div class="formgrid"><label>Cantidad ingrediente<input id="ingredientQty" type="number" step="0.001"></label><div style="padding-top:25px"><button class="btn" onclick="addIngredient()">+ Agregar ingrediente</button></div></div><div id="ingredientList"></div><button class="btn primary" onclick="saveRecipe()" style="margin-top:8px">Guardar receta</button></div><div class="tablewrap"><table class="table"><thead><tr><th>Producto</th><th>Rendimiento</th><th>Ingredientes</th><th>Producción</th></tr></thead><tbody id="recipeTable"></tbody></table></div></section>
 <section id="reportes" class="view"><div class="hero"><div><h2>Reportes</h2><div class="sub">Resumen mensual según los movimientos registrados en el POS.</div></div><label style="min-width:150px">Mes<input id="reportMonth" type="month" onchange="renderReports()"></label></div><div id="reportCards" class="cards"></div><div class="panel"><h3>Productos vendidos</h3><div class="tablewrap"><table class="table"><thead><tr><th>#</th><th>Producto</th><th>Unidades</th></tr></thead><tbody id="reportTable"></tbody></table></div></div></section>
@@ -528,6 +528,76 @@ ensureExpensePayment();
 const oldShowExpenses=window.showView;
 if(typeof oldShowExpenses==='function')window.showView=function(id,btn){oldShowExpenses(id,btn);if(id==='gastos')window.renderExpenses();if(id==='caja')window.renderCash()};
 const timer=setInterval(()=>{if(window.MOROCHAS_USER&&window.morochasSupabase){clearInterval(timer);ensureExpensePayment();window.renderExpenses()}},350);
+setTimeout(()=>clearInterval(timer),15000);
+})();
+</script>
+
+
+<!-- MOROCHAS_SUPABASE_SUPPLIERS_V2 -->
+<script>
+(()=>{
+function supplierEls(){
+ return {
+  id:document.getElementById('supplierId'),name:document.getElementById('supplierName'),
+  rut:document.getElementById('supplierRut'),phone:document.getElementById('supplierPhone'),
+  email:document.getElementById('supplierEmail'),address:document.getElementById('supplierAddress'),
+  save:document.getElementById('supplierSaveBtn'),cancel:document.getElementById('supplierCancelBtn')
+ };
+}
+function clearSupplierForm(){
+ const e=supplierEls(); if(!e.name)return;
+ e.id.value='';e.name.value='';e.rut.value='';e.phone.value='';e.email.value='';e.address.value='';
+ e.save.textContent='Agregar proveedor';e.cancel.style.display='none';
+}
+window.cancelSupplierEdit=clearSupplierForm;
+async function loadCloudSuppliers(){
+ const sb=window.morochasSupabase;if(!sb||!window.MOROCHAS_USER)return;
+ const {data,error}=await sb.from('suppliers').select('id,nombre,rut,telefono,email,direccion,saldo_pendiente,activo').order('nombre');
+ if(error)return toast('Error cargando proveedores: '+error.message);
+ window.MOROCHAS_CLOUD_SUPPLIERS=data||[];
+ suppliers=(data||[]).map(s=>({id:s.id,name:s.nombre,contact:s.telefono||'',balance:+s.saldo_pendiente||0,active:s.activo}));
+ const body=document.getElementById('supplierTable');
+ if(body)body.innerHTML=(data||[]).map(s=>`<tr>
+  <td><b>${esc(s.nombre)}</b></td><td>${esc(s.rut||'—')}</td><td>${esc(s.telefono||'—')}</td>
+  <td>${esc(s.email||'—')}</td><td>${esc(s.direccion||'—')}</td><td>${fmt(+s.saldo_pendiente||0)}</td>
+  <td><span class="tag ${s.activo?'ok':'bad'}">${s.activo?'Activo':'Inactivo'}</span></td>
+  <td><div class="actions"><button class="btn" onclick="editCloudSupplier('${s.id}')">Editar</button>
+  <button class="btn ${s.activo?'red':'green'}" onclick="toggleCloudSupplier('${s.id}',${!s.activo})">${s.activo?'Desactivar':'Activar'}</button></div></td>
+ </tr>`).join('')||'<tr><td colspan="8" class="empty">Sin proveedores</td></tr>';
+ const sel=document.getElementById('purchaseSupplier');
+ if(sel)sel.innerHTML='<option value="">Sin proveedor</option>'+(data||[]).filter(s=>s.activo).map(s=>`<option value="${s.id}">${esc(s.nombre)}</option>`).join('');
+}
+window.loadCloudSuppliers=loadCloudSuppliers;
+window.renderSuppliers=function(){loadCloudSuppliers()};
+window.editCloudSupplier=function(id){
+ const s=(window.MOROCHAS_CLOUD_SUPPLIERS||[]).find(x=>x.id===id);if(!s)return;
+ const e=supplierEls();e.id.value=s.id;e.name.value=s.nombre||'';e.rut.value=s.rut||'';e.phone.value=s.telefono||'';e.email.value=s.email||'';e.address.value=s.direccion||'';
+ e.save.textContent='Guardar cambios';e.cancel.style.display='inline-block';e.name.focus();
+};
+window.saveCloudSupplier=async function(){
+ const sb=window.morochasSupabase;if(!sb||!window.MOROCHAS_USER)return toast('Sesión no disponible');
+ const e=supplierEls(),id=e.id.value,name=e.name.value.trim(),rut=e.rut.value.trim(),phone=e.phone.value.trim(),email=e.email.value.trim(),address=e.address.value.trim();
+ if(!name)return toast('Indica el nombre del proveedor');
+ if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return toast('Revisa el email del proveedor');
+ e.save.disabled=true;
+ const payload={nombre:name,rut:rut||null,telefono:phone||null,email:email||null,direccion:address||null};
+ const res=id?await sb.from('suppliers').update(payload).eq('id',id):await sb.from('suppliers').insert(payload);
+ e.save.disabled=false;
+ if(res.error)return toast('No se pudo guardar: '+res.error.message);
+ clearSupplierForm();await loadCloudSuppliers();toast(id?'Proveedor actualizado':'Proveedor agregado');
+};
+window.toggleCloudSupplier=async function(id,activo){
+ const sb=window.morochasSupabase;if(!sb)return;
+ const s=(window.MOROCHAS_CLOUD_SUPPLIERS||[]).find(x=>x.id===id);
+ if(!confirm((activo?'¿Activar ':'¿Desactivar ')+(s?.nombre||'este proveedor')+'?'))return;
+ const {error}=await sb.from('suppliers').update({activo}).eq('id',id);
+ if(error)return toast('No se pudo cambiar el estado: '+error.message);
+ await loadCloudSuppliers();toast(activo?'Proveedor activado':'Proveedor desactivado');
+};
+window.addSupplier=window.saveCloudSupplier;
+const prevShow=window.showView;
+if(typeof prevShow==='function')window.showView=function(id,btn){prevShow(id,btn);if(id==='proveedores'||id==='compras')loadCloudSuppliers()};
+const timer=setInterval(()=>{if(window.MOROCHAS_USER&&window.morochasSupabase){clearInterval(timer);loadCloudSuppliers()}},400);
 setTimeout(()=>clearInterval(timer),15000);
 })();
 </script>
