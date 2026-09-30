@@ -330,8 +330,18 @@ async function openCloudCash(){
 }
 async function closeCloudCash(){
  if(!currentCashSession)return toast('No hay caja abierta');
- const counted=+document.getElementById('counted').value;
- if(!Number.isFinite(counted)||counted<0)return toast('Ingresa el efectivo contado');
+ const countedInput=document.getElementById('counted');
+ const countedRaw=(countedInput?.value||'').trim();
+ if(countedRaw===''){
+   if(countedInput){countedInput.focus();countedInput.style.outline='2px solid #b5483f'}
+   return toast('Debes ingresar el efectivo contado antes de cerrar la caja');
+ }
+ const counted=Number(countedRaw);
+ if(!Number.isFinite(counted)||counted<0){
+   if(countedInput)countedInput.focus();
+   return toast('Ingresa un monto válido de efectivo contado');
+ }
+ if(countedInput)countedInput.style.outline='';
  if(!confirm('¿Cerrar la caja con '+cashMoney(counted)+' contados?'))return;
  const expected=+window.MOROCHAS_CASH_EXPECTED||0;
  const {error}=await window.morochasSupabase.from('cash_sessions').update({
