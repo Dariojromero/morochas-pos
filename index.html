@@ -498,14 +498,18 @@ window.renderCash=async function(){
   return;
  }
  opening.value=+s.fondo_inicial||0;opening.disabled=true;counted.disabled=false;
- const [sr,er]=await Promise.all([
+ const [sr,er,spr]=await Promise.all([
   sb.from('sales').select('total').eq('metodo_pago','efectivo').gte('created_at',s.apertura),
-  sb.from('expenses').select('monto').eq('metodo_pago','efectivo').eq('cash_session_id',s.id)
+  sb.from('expenses').select('monto').eq('metodo_pago','efectivo').eq('cash_session_id',s.id),
+  sb.from('supplier_payments').select('monto').eq('metodo_pago','efectivo').eq('cash_session_id',s.id)
  ]);
  if(sr.error)return toast('Error calculando ventas en efectivo: '+sr.error.message);
- if(er.error)return toast('Error calculando salidas en efectivo: '+er.error.message);
+ if(er.error)return toast('Error calculando gastos en efectivo: '+er.error.message);
+ if(spr.error)return toast('Error calculando pagos a proveedores: '+spr.error.message);
  const cashSales=(sr.data||[]).reduce((a,x)=>a+(+x.total||0),0);
- const cashOut=(er.data||[]).reduce((a,x)=>a+(+x.monto||0),0);
+ const expenseOut=(er.data||[]).reduce((a,x)=>a+(+x.monto||0),0);
+ const supplierOut=(spr.data||[]).reduce((a,x)=>a+(+x.monto||0),0);
+ const cashOut=expenseOut+supplierOut;
  const expected=(+s.fondo_inicial||0)+cashSales-cashOut;
  const raw=counted.value.trim(),hasCount=raw!=='',n=hasCount?(+raw||0):0,diff=n-expected;
  if(main){main.textContent='Caja abierta';main.disabled=true}
