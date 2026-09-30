@@ -602,4 +602,79 @@ setTimeout(()=>clearInterval(timer),15000);
 })();
 </script>
 
+
+<!-- MOROCHAS_SUPABASE_PURCHASES_V1 -->
+<script>
+(()=>{
+function purchaseEls(){
+ return {
+  supplier:document.getElementById('purchaseSupplier'),
+  product:document.getElementById('purchaseProduct'),
+  qty:document.getElementById('purchaseQty'),
+  total:document.getElementById('purchaseTotal'),
+  paid:document.getElementById('purchasePaid'),
+  table:document.getElementById('purchaseTable')
+ };
+}
+async function loadPurchaseProducts(){
+ const sb=window.morochasSupabase,e=purchaseEls();if(!sb||!e.product)return;
+ const keep=e.product.value;
+ const {data,error}=await sb.from('products').select('id,nombre,activo').eq('activo',true).order('nombre');
+ if(error)return toast('Error cargando productos de compra: '+error.message);
+ e.product.innerHTML=(data||[]).map(p=>'<option value="'+p.id+'">'+esc(p.nombre)+'</option>').join('');
+ if(keep&&[...e.product.options].some(o=>o.value===keep))e.product.value=keep;
+}
+async function loadCloudPurchases(){
+ const sb=window.morochasSupabase,e=purchaseEls();if(!sb||!window.MOROCHAS_USER||!e.table)return;
+ const {data:rows,error}=await sb.from('purchases').select('id,supplier_id,total,pagado,saldo,estado,created_at').order('created_at',{ascending:false}).limit(100);
+ if(error)return toast('Error cargando compras: '+error.message);
+ const ids=(rows||[]).map(x=>x.id);
+ let items=[];
+ if(ids.length){
+   const r=await sb.from('purchase_items').select('purchase_id,descripcion,cantidad').in('purchase_id',ids);
+   if(r.error)return toast('Error cargando detalle de compras: '+r.error.message);
+   items=r.data||[];
+ }
+ const suppliers=window.MOROCHAS_CLOUD_SUPPLIERS||[];
+ const chileDate=iso=>new Intl.DateTimeFormat('es-CL',{timeZone:'America/Santiago',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(iso));
+ e.table.innerHTML=(rows||[]).map(x=>{
+   const it=items.find(i=>i.purchase_id===x.id)||{};
+   const sp=suppliers.find(s=>s.id===x.supplier_id);
+   return '<tr><td>'+chileDate(x.created_at)+'</td><td>'+esc(sp?.nombre||'Sin proveedor')+'</td><td>'+esc(it.descripcion||'—')+'</td><td>'+esc(String(it.cantidad??'—'))+'</td><td>'+fmt(+x.total||0)+'</td><td><span class="tag '+(x.estado==='pagada'?'ok':'bad')+'">'+esc(x.estado||'—')+'</span></td></tr>';
+ }).join('')||'<tr><td colspan="6" class="empty">Sin compras</td></tr>';
+}
+window.loadCloudPurchases=loadCloudPurchases;
+window.renderPurchases=function(){loadPurchaseProducts();loadCloudPurchases()};
+window.addPurchase=async function(){
+ const sb=window.morochasSupabase,e=purchaseEls();
+ if(!sb||!window.MOROCHAS_USER)return toast('Sesión no disponible');
+ const supplier=e.supplier?.value||null,product=e.product?.value||null,qty=+(e.qty?.value||0),total=+(e.total?.value||0),paid=!!e.paid?.checked;
+ if(!product)return toast('Selecciona un producto');
+ if(!Number.isFinite(qty)||qty<=0)return toast('La cantidad debe ser mayor que cero');
+ if(!Number.isFinite(total)||total<0)return toast('Ingresa un total de compra válido');
+ const btn=[...document.querySelectorAll('#compras button')].find(b=>b.textContent.includes('Registrar compra'));
+ if(btn)btn.disabled=true;
+ try{
+  const {data,error}=await sb.rpc('create_purchase',{
+    p_supplier_id:supplier,p_product_id:product,p_quantity:qty,p_total:total,p_paid:paid
+  });
+  if(error)return toast('Compra no registrada: '+error.message);
+  if(e.qty)e.qty.value='';if(e.total)e.total.value='';if(e.paid)e.paid.checked=false;
+  await Promise.all([loadCloudPurchases(),window.loadCloudSuppliers?window.loadCloudSuppliers():Promise.resolve()]);
+  if(typeof window.loadCloudProducts==='function')await window.loadCloudProducts();
+  else if(typeof window.renderInventory==='function')window.renderInventory();
+  toast('Compra registrada correctamente · inventario y proveedor actualizados');
+ }catch(err){toast('Error al registrar compra: '+(err?.message||err))}
+ finally{if(btn)btn.disabled=false}
+};
+const prevShow=window.showView;
+if(typeof prevShow==='function')window.showView=function(id,btn){
+ prevShow(id,btn);
+ if(id==='compras'){loadPurchaseProducts();if(window.loadCloudSuppliers)window.loadCloudSuppliers().then(loadCloudPurchases);else loadCloudPurchases();}
+};
+const timer=setInterval(()=>{if(window.MOROCHAS_USER&&window.morochasSupabase){clearInterval(timer);loadPurchaseProducts();loadCloudPurchases()}},450);
+setTimeout(()=>clearInterval(timer),15000);
+})();
+</script>
+
 </body></html>
