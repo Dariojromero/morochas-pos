@@ -425,4 +425,111 @@ document.getElementById('authPassword').addEventListener('keydown',e=>{if(e.key=
 boot();
 })();
 </script>
+
+<!-- MOROCHAS_SUPABASE_EXPENSES_V1 -->
+<script>
+(()=>{
+function chileBoundsExpenses(){
+ const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Santiago',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+ const g=t=>+parts.find(x=>x.type===t).value;
+ const y=g('year'),m=g('month'),d=g('day');
+ const probe=new Date(Date.UTC(y,m-1,d,12));
+ const z=new Intl.DateTimeFormat('en-US',{timeZone:'America/Santiago',hour12:false,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}).formatToParts(probe);
+ const v=t=>+z.find(x=>x.type===t).value;
+ const asUTC=Date.UTC(v('year'),v('month')-1,v('day'),v('hour')===24?0:v('hour'),v('minute'),v('second'));
+ const offset=asUTC-probe.getTime();
+ const start=new Date(Date.UTC(y,m-1,d)-offset);
+ return {start:start.toISOString(),end:new Date(start.getTime()+86400000).toISOString()};
+}
+function ensureExpensePayment(){
+ if(document.getElementById('expensePayment'))return;
+ const cat=document.getElementById('expenseCat');
+ if(!cat)return;
+ const label=document.createElement('label');
+ label.innerHTML='Medio de pago<select id="expensePayment"><option value="efectivo">Efectivo</option><option value="tuu">TUU</option><option value="transferencia">Transferencia</option></select>';
+ cat.closest('label').insertAdjacentElement('afterend',label);
+}
+async function cloudExpensesToday(){
+ const sb=window.morochasSupabase;if(!sb||!window.MOROCHAS_USER)return [];
+ const {start,end}=chileBoundsExpenses();
+ const {data,error}=await sb.from('expenses').select('id,concepto,categoria,monto,metodo_pago,cash_session_id,created_at').gte('created_at',start).lt('created_at',end).order('created_at',{ascending:false});
+ if(error){toast('Error cargando salidas: '+error.message);return []}
+ return data||[];
+}
+window.renderExpenses=async function(){
+ ensureExpensePayment();
+ const list=document.getElementById('expenseList');if(!list)return;
+ const rows=await cloudExpensesToday();
+ const labels={efectivo:'Efectivo',tuu:'TUU',transferencia:'Transferencia'};
+ list.innerHTML=rows.map(x=>'<div class="row"><span>'+esc(x.concepto)+' <span class="tag">'+esc(x.categoria||'')+'</span> <span class="tag">'+esc(labels[x.metodo_pago]||x.metodo_pago||'')+'</span></span><b>-'+fmt(+x.monto||0)+'</b></div>').join('')||'<div class="empty">Sin salidas hoy</div>';
+};
+window.addExpense=async function(){
+ ensureExpensePayment();
+ const concepto=document.getElementById('expenseConcept').value.trim();
+ const monto=+document.getElementById('expenseAmount').value||0;
+ const categoria=document.getElementById('expenseCat').value||'Operación';
+ const metodo=document.getElementById('expensePayment').value||'efectivo';
+ if(!concepto||monto<=0)return toast('Completa concepto y monto');
+ const sb=window.morochasSupabase;if(!sb||!window.MOROCHAS_USER)return toast('Sesión no disponible');
+ const btn=[...document.querySelectorAll('#gastos button')].find(b=>b.textContent.includes('Registrar salida'));
+ if(btn)btn.disabled=true;
+ try{
+  const {error}=await sb.rpc('create_expense',{p_concepto:concepto,p_monto:monto,p_categoria:categoria,p_metodo_pago:metodo,p_observacion:null});
+  if(error)return toast('Salida no registrada: '+error.message);
+  document.getElementById('expenseConcept').value='';
+  document.getElementById('expenseAmount').value='';
+  await window.renderExpenses();
+  await window.renderCash();
+  toast('Salida registrada en Supabase · '+({efectivo:'Efectivo',tuu:'TUU',transferencia:'Transferencia'}[metodo]||metodo));
+ }catch(e){toast('Error al registrar salida: '+(e?.message||e))}
+ finally{if(btn)btn.disabled=false}
+};
+window.renderCash=async function(){
+ const sb=window.morochasSupabase;if(!sb||!window.MOROCHAS_USER)return;
+ const {data:s,error}=await sb.from('cash_sessions').select('*').eq('estado','abierta').order('apertura',{ascending:false}).limit(1).maybeSingle();
+ if(error)return toast('Error cargando caja: '+error.message);
+ const opening=document.getElementById('cashOpening'),counted=document.getElementById('counted');if(!opening||!counted)return;
+ const main=document.querySelector('#caja .btn.primary');
+ if(!s){
+  opening.disabled=false;counted.disabled=true;
+  if(main){main.textContent='Abrir caja';main.disabled=false}
+  const close=document.getElementById('closeCashBtn');if(close)close.style.display='none';
+  document.getElementById('cashSummary').innerHTML='<div class="empty">No hay una caja abierta. Ingresa el fondo inicial y pulsa <b>Abrir caja</b>.</div>';
+  return;
+ }
+ opening.value=+s.fondo_inicial||0;opening.disabled=true;counted.disabled=false;
+ const [sr,er]=await Promise.all([
+  sb.from('sales').select('total').eq('metodo_pago','efectivo').gte('created_at',s.apertura),
+  sb.from('expenses').select('monto').eq('metodo_pago','efectivo').eq('cash_session_id',s.id)
+ ]);
+ if(sr.error)return toast('Error calculando ventas en efectivo: '+sr.error.message);
+ if(er.error)return toast('Error calculando salidas en efectivo: '+er.error.message);
+ const cashSales=(sr.data||[]).reduce((a,x)=>a+(+x.total||0),0);
+ const cashOut=(er.data||[]).reduce((a,x)=>a+(+x.monto||0),0);
+ const expected=(+s.fondo_inicial||0)+cashSales-cashOut;
+ const raw=counted.value.trim(),hasCount=raw!=='',n=hasCount?(+raw||0):0,diff=n-expected;
+ if(main){main.textContent='Caja abierta';main.disabled=true}
+ let close=document.getElementById('closeCashBtn');
+ if(!close){close=document.createElement('button');close.id='closeCashBtn';close.className='btn red';close.style.marginLeft='8px';close.textContent='Cerrar caja';main.insertAdjacentElement('afterend',close);close.onclick=()=>{ const b=document.getElementById('closeCashBtn'); if(b && typeof b._morochasClose==='function') b._morochasClose(); };}
+ close.style.display='';
+ // Preserve the close handler installed by the cash module if present.
+ if(typeof closeCloudCash==='function') close.onclick=closeCloudCash;
+ document.getElementById('cashSummary').innerHTML=
+  '<div class="row"><span>Estado</span><b class="ok">ABIERTA</b></div>'+
+  '<div class="row"><span>Fondo inicial</span><b>'+fmt(+s.fondo_inicial||0)+'</b></div>'+
+  '<div class="row"><span>Ventas efectivo desde apertura</span><b>'+fmt(cashSales)+'</b></div>'+
+  '<div class="row"><span>Salidas en efectivo</span><b class="'+(cashOut?'bad':'')+'">-'+fmt(cashOut)+'</b></div>'+
+  '<div class="row"><span>Efectivo esperado</span><b>'+fmt(expected)+'</b></div>'+
+  '<div class="row"><span>Efectivo contado</span><b>'+(hasCount?fmt(n):'—')+'</b></div>'+
+  '<div class="row"><span>Diferencia</span><b class="'+(hasCount?(diff>=0?'ok':'bad'):'')+'">'+(hasCount?fmt(diff):'—')+'</b></div>';
+ window.MOROCHAS_CASH_EXPECTED=expected;
+};
+ensureExpensePayment();
+const oldShowExpenses=window.showView;
+if(typeof oldShowExpenses==='function')window.showView=function(id,btn){oldShowExpenses(id,btn);if(id==='gastos')window.renderExpenses();if(id==='caja')window.renderCash()};
+const timer=setInterval(()=>{if(window.MOROCHAS_USER&&window.morochasSupabase){clearInterval(timer);ensureExpensePayment();window.renderExpenses()}},350);
+setTimeout(()=>clearInterval(timer),15000);
+})();
+</script>
+
 </body></html>
