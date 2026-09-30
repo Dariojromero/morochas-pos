@@ -562,6 +562,7 @@ async function loadCloudSuppliers(){
   <td>${esc(s.email||'—')}</td><td>${esc(s.direccion||'—')}</td><td>${fmt(+s.saldo_pendiente||0)}</td>
   <td><span class="tag ${s.activo?'ok':'bad'}">${s.activo?'Activo':'Inactivo'}</span></td>
   <td><div class="actions"><button class="btn" onclick="editCloudSupplier('${s.id}')">Editar</button>
+  ${(+s.saldo_pendiente||0)>0?'<button class="btn green" onclick="openSupplierPayment(\''+s.id+'\')">Registrar pago</button>':''}
   <button class="btn ${s.activo?'red':'green'}" onclick="toggleCloudSupplier('${s.id}',${!s.activo})">${s.activo?'Desactivar':'Activar'}</button></div></td>
  </tr>`).join('')||'<tr><td colspan="8" class="empty">Sin proveedores</td></tr>';
  const sel=document.getElementById('purchaseSupplier');
@@ -677,4 +678,94 @@ setTimeout(()=>clearInterval(timer),15000);
 })();
 </script>
 
-</body></html>
+
+<!-- MOROCHAS_SUPPLIER_PAYMENTS_V1 -->
+<div class="modal" id="supplierPaymentModal">
+ <div class="modalbox">
+  <div class="sectiontitle"><h3>Registrar pago a proveedor</h3><button class="btn" onclick="closeSupplierPayment()">Cerrar</button></div>
+  <div id="supplierPaymentInfo" class="successbox" style="margin-bottom:12px"></div>
+  <label>Compra pendiente
+   <select id="supplierPaymentPurchase"></select>
+  </label>
+  <div class="formgrid">
+   <label>Monto del abono<input id="supplierPaymentAmount" type="number" min="1" step="1" placeholder="Ej: 1000"></label>
+   <label>Medio de pago
+    <select id="supplierPaymentMethod">
+     <option value="efectivo">Efectivo</option>
+     <option value="tuu">TUU</option>
+     <option value="transferencia">Transferencia</option>
+    </select>
+   </label>
+  </div>
+  <label>Observación<input id="supplierPaymentNote" placeholder="Ej: Abono factura / compra"></label>
+  <div class="actions"><button class="btn green" id="supplierPaymentSave" onclick="saveSupplierPayment()">Registrar abono</button><button class="btn" onclick="closeSupplierPayment()">Cancelar</button></div>
+ </div>
+</div>
+<script>
+(()=>{
+let payingSupplier=null;
+window.closeSupplierPayment=function(){
+ document.getElementById('supplierPaymentModal')?.classList.remove('show');
+ payingSupplier=null;
+};
+window.openSupplierPayment=async function(supplierId){
+ const sb=window.morochasSupabase;
+ if(!sb||!window.MOROCHAS_USER)return toast('Sesión no disponible');
+ const s=(window.MOROCHAS_CLOUD_SUPPLIERS||[]).find(x=>x.id===supplierId);
+ if(!s)return toast('Proveedor no encontrado');
+ payingSupplier=s;
+ const {data,error}=await sb.from('purchases')
+  .select('id,total,pagado,saldo,estado,created_at')
+  .eq('supplier_id',supplierId).gt('saldo',0)
+  .order('created_at',{ascending:false});
+ if(error)return toast('No se pudieron cargar las deudas: '+error.message);
+ if(!data?.length)return toast('Este proveedor no tiene compras pendientes');
+ const sel=document.getElementById('supplierPaymentPurchase');
+ const fd=iso=>new Intl.DateTimeFormat('es-CL',{timeZone:'America/Santiago',day:'2-digit',month:'2-digit',year:'numeric'}).format(new Date(iso));
+ sel.innerHTML=data.map(p=>'<option value="'+p.id+'" data-saldo="'+(+p.saldo||0)+'">'+fd(p.created_at)+' · Saldo '+fmt(+p.saldo||0)+'</option>').join('');
+ document.getElementById('supplierPaymentInfo').innerHTML='<b>'+esc(s.nombre)+'</b><br>Saldo total pendiente: '+fmt(+s.saldo_pendiente||0);
+ const amount=document.getElementById('supplierPaymentAmount');
+ amount.value=''; amount.max=sel.selectedOptions[0]?.dataset.saldo||'';
+ document.getElementById('supplierPaymentNote').value='';
+ sel.onchange=()=>{amount.max=sel.selectedOptions[0]?.dataset.saldo||'';};
+ document.getElementById('supplierPaymentModal').classList.add('show');
+ amount.focus();
+};
+window.saveSupplierPayment=async function(){
+ const sb=window.morochasSupabase;
+ if(!sb||!window.MOROCHAS_USER||!payingSupplier)return toast('Sesión no disponible');
+ const sel=document.getElementById('supplierPaymentPurchase');
+ const purchaseId=sel.value;
+ const saldo=+(sel.selectedOptions[0]?.dataset.saldo||0);
+ const amount=+document.getElementById('supplierPaymentAmount').value;
+ const method=document.getElementById('supplierPaymentMethod').value;
+ const note=document.getElementById('supplierPaymentNote').value.trim()||null;
+ if(!purchaseId)return toast('Selecciona una compra pendiente');
+ if(!Number.isFinite(amount)||amount<=0)return toast('Ingresa un monto válido');
+ if(amount>saldo)return toast('El abono no puede superar el saldo de '+fmt(saldo));
+ if(method==='efectivo'){
+   const {data:cash,error:cashErr}=await sb.from('cash_sessions').select('id').eq('estado','abierta').limit(1).maybeSingle();
+   if(cashErr)return toast('No se pudo verificar la caja: '+cashErr.message);
+   if(!cash)return toast('Debes abrir caja antes de pagar en efectivo');
+ }
+ const btn=document.getElementById('supplierPaymentSave'); btn.disabled=true;
+ try{
+  const {error}=await sb.rpc('pay_supplier',{
+   p_supplier_id:payingSupplier.id,
+   p_amount:amount,
+   p_payment_method:method,
+   p_purchase_id:purchaseId,
+   p_observacion:note
+  });
+  if(error)return toast('Pago no registrado: '+error.message);
+  closeSupplierPayment();
+  if(window.loadCloudSuppliers)await window.loadCloudSuppliers();
+  if(window.loadCloudPurchases)await window.loadCloudPurchases();
+  if(typeof window.renderCash==='function')await window.renderCash();
+  toast('Abono registrado correctamente · '+fmt(amount));
+ }catch(e){toast('Error registrando pago: '+(e?.message||e))}
+ finally{btn.disabled=false}
+};
+})();
+</script>
+\n</body></html>
