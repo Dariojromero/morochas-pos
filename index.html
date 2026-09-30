@@ -241,6 +241,19 @@ window.completeSale=async function(method){
  }
  const dbMethod=paymentMap[method];
  if(!dbMethod)return toast('Método de pago no válido');
+
+ // Control obligatorio de caja para ventas en efectivo.
+ // La validación se hace contra Supabase, no solo contra la interfaz.
+ if(dbMethod==='efectivo'){
+  const {data:openCash,error:cashError}=await sb.from('cash_sessions')
+   .select('id')
+   .eq('estado','abierta')
+   .order('apertura',{ascending:false})
+   .limit(1)
+   .maybeSingle();
+  if(cashError)return toast('No se pudo verificar la caja: '+cashError.message);
+  if(!openCash)return toast('🔒 Caja cerrada · Debes abrir caja antes de registrar ventas en efectivo');
+ }
  const snapshot=cart.map(x=>({id:x.id,name:x.name,qty:+x.qty,price:+x.price,cost:+x.cost}));
  const total=sum(snapshot.map(x=>x.price*x.qty));
  const payload=snapshot.map(x=>({product_id:x.id,qty:x.qty}));
