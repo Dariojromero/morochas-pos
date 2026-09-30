@@ -342,8 +342,23 @@ async function closeCloudCash(){
    return toast('Ingresa un monto válido de efectivo contado');
  }
  if(countedInput)countedInput.style.outline='';
- if(!confirm('¿Cerrar la caja con '+cashMoney(counted)+' contados?'))return;
  const expected=+window.MOROCHAS_CASH_EXPECTED||0;
+ const opening=+(currentCashSession.fondo_inicial||0);
+ const sales=+(window.MOROCHAS_CASH_SALES||0);
+ const outflows=+(window.MOROCHAS_CASH_OUTFLOWS||0);
+ const difference=counted-expected;
+ const diffLabel=difference===0?'CUADRADA':(difference>0?'SOBRANTE':'FALTANTE');
+ const diffText=difference===0?cashMoney(0):(difference>0?'+':'-')+cashMoney(Math.abs(difference));
+ const summary='RESUMEN DE CIERRE DE CAJA\n\n'
+   +'Fondo inicial: '+cashMoney(opening)+'\n'
+   +'Ventas en efectivo: '+cashMoney(sales)+'\n'
+   +'Salidas en efectivo: -'+cashMoney(outflows)+'\n'
+   +'--------------------------------\n'
+   +'Efectivo esperado: '+cashMoney(expected)+'\n'
+   +'Efectivo contado: '+cashMoney(counted)+'\n'
+   +'Diferencia: '+diffText+' ('+diffLabel+')\n\n'
+   +'¿Confirmas el cierre de caja?';
+ if(!confirm(summary))return;
  const {error}=await window.morochasSupabase.from('cash_sessions').update({
    closed_by:window.MOROCHAS_USER.id,cierre:new Date().toISOString(),
    efectivo_esperado:expected,efectivo_contado:counted,diferencia:counted-expected,estado:'cerrada'
