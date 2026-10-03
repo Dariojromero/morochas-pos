@@ -12,7 +12,7 @@
 <section id="proveedores" class="view"><div class="hero"><div><h2>Proveedores</h2><div class="sub">Ficha de proveedores, cuentas por pagar y estado.</div></div></div><div class="panel"><input id="supplierId" type="hidden"><div class="formgrid3"><label>Nombre / razón social<input id="supplierName" placeholder="Ej. Distribuidora Central"></label><label>RUT<input id="supplierRut" placeholder="Ej. 76.123.456-7"></label><label>Teléfono<input id="supplierPhone" placeholder="+56 9..."></label><label>Email<input id="supplierEmail" type="email" placeholder="ventas@proveedor.cl"></label><label style="grid-column:span 2">Dirección<input id="supplierAddress" placeholder="Dirección del proveedor"></label></div><div class="actions"><button class="btn primary" id="supplierSaveBtn" onclick="saveCloudSupplier()">Agregar proveedor</button><button class="btn" id="supplierCancelBtn" onclick="cancelSupplierEdit()" style="display:none">Cancelar edición</button></div></div><div class="tablewrap"><table class="table"><thead><tr><th>Proveedor</th><th>RUT</th><th>Teléfono</th><th>Email</th><th>Dirección</th><th>Saldo pendiente</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="supplierTable"></tbody></table></div></section>
 <section id="clientes" class="view"><div class="hero"><div><h2>Clientes y créditos</h2><div class="sub">Registra ventas a crédito, deuda y abonos.</div></div></div><div class="panel"><div class="formgrid3"><label>Cliente<input id="customerName"></label><label>Teléfono<input id="customerPhone"></label><label>Límite de crédito<input id="customerLimit" type="number"></label></div><button class="btn primary" onclick="addCustomer()">Agregar cliente</button></div><div class="tablewrap"><table class="table"><thead><tr><th>Cliente</th><th>Teléfono</th><th>Límite</th><th>Deuda</th><th></th></tr></thead><tbody id="customerTable"></tbody></table></div><div class="panel"><h3>Movimientos de crédito</h3><div class="tablewrap"><table class="table"><thead><tr><th>Fecha</th><th>Cliente</th><th>Monto</th><th>Estado</th></tr></thead><tbody id="creditTable"></tbody></table></div></div></section>
 <section id="recetas" class="view"><div class="hero"><div><h2>Recetas y producción</h2><div class="sub">La producción consume materias primas y aumenta producto terminado.</div></div></div><div class="panel"><h3>Nueva receta</h3><div class="formgrid3"><label>Producto terminado<select id="recipeProduct"></select></label><label>Rendimiento<input id="recipeOutput" type="number" step="0.001"></label><label>Ingrediente<select id="ingredientProduct"></select></label></div><div class="formgrid"><label>Cantidad ingrediente<input id="ingredientQty" type="number" step="0.001"></label><div style="padding-top:25px"><button class="btn" onclick="addIngredient()">+ Agregar ingrediente</button></div></div><div id="ingredientList"></div><button class="btn primary" onclick="saveRecipe()" style="margin-top:8px">Guardar receta</button></div><div class="tablewrap"><table class="table"><thead><tr><th>Producto</th><th>Rendimiento</th><th>Ingredientes</th><th>Producción</th></tr></thead><tbody id="recipeTable"></tbody></table></div></section>
-<section id="reportes" class="view"><div class="hero"><div><h2>Reportes</h2><div class="sub">Informe gerencial de Morochas Bakery · datos reales de Supabase.</div></div><div class="actions"><label>Desde<input id="reportFrom" type="date" onchange="renderReports()"></label><label>Hasta<input id="reportTo" type="date" onchange="renderReports()"></label><button class="btn" onclick="setReportToday()">Hoy</button><button class="btn" onclick="setReportWeek()">Semana</button><button class="btn" onclick="setReportMonth()">Este mes</button><button class="btn gold" onclick="renderReports()">Actualizar</button></div></div><div id="reportCards" class="cards"></div><div class="panel"><h3>Ventas por día</h3><div id="reportDailyChart" style="min-height:190px"></div></div><div class="panel"><h3>Medios de pago</h3><div id="reportPaymentChart" style="margin-bottom:12px"></div><div id="reportPayments"></div></div><div class="panel"><h3>Productos vendidos</h3><div class="tablewrap"><table class="table"><thead><tr><th>#</th><th>Producto</th><th>Unidades</th><th>Ventas</th></tr></thead><tbody id="reportTable"></tbody></table></div></div><div class="panel"><h3>Cierres de caja</h3><div class="tablewrap"><table class="table"><thead><tr><th>Apertura</th><th>Cierre</th><th>Esperado</th><th>Contado</th><th>Diferencia</th><th>Estado</th></tr></thead><tbody id="reportCashTable"></tbody></table></div></div></section>
+<section id="reportes" class="view"><div class="hero"><div><h2>Reportes</h2><div class="sub">Informe gerencial de Morochas Bakery · datos reales de Supabase.</div></div><div class="actions"><label>Desde<input id="reportFrom" type="date" onchange="renderReports()"></label><label>Hasta<input id="reportTo" type="date" onchange="renderReports()"></label><button class="btn" onclick="setReportToday()">Hoy</button><button class="btn" onclick="setReportWeek()">Semana</button><button class="btn" onclick="setReportMonth()">Este mes</button><button class="btn gold" onclick="renderReports()">Actualizar</button><button class="btn" onclick="printMorochasReport()">🖨️ Imprimir</button><button class="btn" onclick="exportMorochasPDF()">📄 PDF</button><button class="btn" onclick="exportMorochasExcel()">📊 Excel</button></div></div><div id="reportCards" class="cards"></div><div class="panel"><h3>Ventas por día</h3><div id="reportDailyChart" style="min-height:190px"></div></div><div class="panel"><h3>Medios de pago</h3><div id="reportPaymentChart" style="margin-bottom:12px"></div><div id="reportPayments"></div></div><div class="panel"><h3>Productos vendidos</h3><div class="tablewrap"><table class="table"><thead><tr><th>#</th><th>Producto</th><th>Unidades</th><th>Ventas</th></tr></thead><tbody id="reportTable"></tbody></table></div></div><div class="panel"><h3>Cierres de caja</h3><div class="tablewrap"><table class="table"><thead><tr><th>Apertura</th><th>Cierre</th><th>Esperado</th><th>Contado</th><th>Diferencia</th><th>Estado</th></tr></thead><tbody id="reportCashTable"></tbody></table></div></div></section>
 <section id="config" class="view"><div class="hero"><div><h2>Datos y respaldo</h2><div class="sub">El POS guarda la información en este navegador.</div></div><img src="data:image/png;base64,{b64}" class="logo-big"></div><div class="panel"><div id="configStats"></div></div><div class="panel"><h3>Respaldo</h3><div class="successbox">Exporta una copia JSON regularmente. Si cambias de computador o navegador, puedes importarla.</div><div class="actions" style="margin-top:10px"><button class="btn gold" onclick="exportBackup()">⬇ Exportar respaldo</button><label class="btn" style="display:inline-block">⬆ Importar respaldo<input type="file" accept="application/json" onchange="importBackup(this.files[0])" style="display:none"></label></div></div><div class="dangerbox"><b>Importante:</b> este POS es un sistema operativo interno. No reemplaza la contabilidad ni la emisión fiscal SII. Mantén respaldos.</div><div class="panel"><button class="btn red" onclick="resetData()">Borrar datos del POS 3.0</button></div></section>
 <div id="productModal" class="modal"><div class="modalbox"><div class="sectiontitle"><h2>Editar producto</h2><button class="btn" onclick="closeModal('productModal')">✕</button></div><input type="hidden" id="editProductId"><div class="formgrid"><label>Nombre<input id="epName"></label><label>Categoría<input id="epCat"></label><label>Precio venta<input id="epPrice" type="number"></label><label>Costo unitario<input id="epCost" type="number"></label><label>Stock actual<input id="epStock" type="number" step="0.001"></label><label>Stock mínimo<input id="epMin" type="number" step="0.001"></label><label>Unidad<input id="epUnit"></label><label>Tipo<select id="epType"><option value="finished">Producto terminado</option><option value="raw">Materia prima</option></select></label></div><label>Foto del producto<input id="epPhoto" type="file" accept="image/*" onchange="previewProductPhoto(this)"></label><img id="epPhotoPreview" class="photo-preview" alt="Foto del producto"><div class="mini">La foto se comprime y guarda dentro del sistema. Recomendado: imagen cuadrada o vertical.</div><label><input id="epTrack" type="checkbox" style="width:auto"> Controlar stock</label><label><input id="epActive" type="checkbox" style="width:auto"> Producto activo / disponible para venta</label><div class="actions"><button class="btn primary" onclick="saveProduct()">Guardar</button><button id="toggleProductBtn" class="btn red" onclick="toggleProductStatus()">Dar de baja</button><button class="btn" onclick="closeModal('productModal')">Cancelar</button></div></div></div>
 <div id="creditModal" class="modal"><div class="modalbox"><h2>Venta a crédito</h2><label>Cliente<select id="saleCustomer"></select></label><div class="actions"><button class="btn gold" onclick="confirmCredit()">Registrar crédito</button><button class="btn" onclick="closeModal('creditModal')">Cancelar</button></div></div></div>
@@ -986,4 +986,85 @@ window.renderReports=async function(){
 };
 })();
 </script>
+
+<!-- MOROCHAS_REPORT_EXPORT_V1 -->
+<script>
+(()=>{
+const loadScript=(src,key)=>new Promise((resolve,reject)=>{
+ if(window[key])return resolve();
+ const old=[...document.scripts].find(s=>s.src===src);
+ if(old){old.addEventListener('load',resolve,{once:true});old.addEventListener('error',reject,{once:true});return;}
+ const s=document.createElement('script');s.src=src;s.onload=resolve;s.onerror=reject;document.head.appendChild(s);
+});
+const range=()=>({from:document.getElementById('reportFrom')?.value||'',to:document.getElementById('reportTo')?.value||''});
+const filename=(ext)=>{const r=range();return 'Morochas_Reporte_'+r.from+'_al_'+r.to+'.'+ext;};
+const getData=async()=>{
+ const sb=window.morochasSupabase,{from,to}=range();
+ if(!sb||!window.MOROCHAS_USER)throw new Error('Debes iniciar sesión');
+ if(!from||!to)throw new Error('Selecciona el período');
+ const start=new Date(from+'T00:00:00-03:00').toISOString(),end=new Date(to+'T23:59:59.999-03:00').toISOString();
+ const [sr,er,cr,pr]=await Promise.all([
+  sb.from('sales').select('id,total,metodo_pago,created_at').gte('created_at',start).lte('created_at',end).order('created_at'),
+  sb.from('expenses').select('concepto,categoria,monto,metodo_pago,created_at').gte('created_at',start).lte('created_at',end).order('created_at'),
+  sb.from('cash_sessions').select('apertura,cierre,fondo_inicial,efectivo_esperado,efectivo_contado,diferencia,estado').gte('apertura',start).lte('apertura',end).order('apertura'),
+  sb.from('supplier_payments').select('monto,metodo_pago,created_at').gte('created_at',start).lte('created_at',end)
+ ]);
+ for(const q of [sr,er,cr,pr])if(q.error)throw q.error;
+ let items=[];if((sr.data||[]).length){const ir=await sb.from('sale_items').select('sale_id,producto_nombre,cantidad,precio_unitario,costo_unitario').in('sale_id',sr.data.map(x=>x.id));if(ir.error)throw ir.error;items=ir.data||[];}
+ const sales=sr.data||[],expenses=er.data||[],cash=cr.data||[],supplier=pr.data||[];
+ const revenue=sales.reduce((a,x)=>a+(+x.total||0),0),cost=items.reduce((a,x)=>a+(+x.costo_unitario||0)*(+x.cantidad||0),0),expense=expenses.reduce((a,x)=>a+(+x.monto||0),0);
+ const gross=revenue-cost,net=gross-expense,margin=revenue?net/revenue*100:0,ticket=sales.length?revenue/sales.length:0;
+ const products={};items.forEach(i=>{const k=i.producto_nombre||'Producto';if(!products[k])products[k]={qty:0,total:0};products[k].qty+=+i.cantidad||0;products[k].total+=(+i.precio_unitario||0)*(+i.cantidad||0);});
+ const payments={};sales.forEach(x=>{const k=x.metodo_pago||'Otro';payments[k]=(payments[k]||0)+(+x.total||0);});
+ return {from,to,sales,expenses,cash,supplier,items,revenue,cost,gross,expense,net,margin,ticket,products,payments};
+};
+const dt=x=>x?new Intl.DateTimeFormat('es-CL',{timeZone:'America/Santiago',dateStyle:'short',timeStyle:'short'}).format(new Date(x)):'—';
+window.printMorochasReport=()=>window.print();
+window.exportMorochasPDF=async()=>{
+ try{
+  toast('Preparando PDF...');
+  const d=await getData();
+  await loadScript('https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js','jspdf');
+  await loadScript('https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js','jspdf');
+  const {jsPDF}=window.jspdf,doc=new jsPDF({unit:'mm',format:'a4'});
+  doc.setFont('helvetica','bold');doc.setFontSize(18);doc.text('MOROCHAS BAKERY',14,16);
+  doc.setFontSize(11);doc.text('Informe gerencial',14,23);doc.setFont('helvetica','normal');doc.text('Periodo: '+d.from+' al '+d.to,14,29);
+  const rows=[['Ventas',fmt(d.revenue)],['Costo vendido',fmt(d.cost)],['Utilidad bruta',fmt(d.gross)],['Gastos',fmt(d.expense)],['Utilidad neta estimada',fmt(d.net)],['Margen neto',d.margin.toLocaleString('es-CL',{maximumFractionDigits:1})+'%'],['Ticket promedio',fmt(d.ticket)],['Numero de ventas',String(d.sales.length)]];
+  doc.autoTable({startY:35,head:[['Indicador','Valor']],body:rows,theme:'grid'});
+  let y=doc.lastAutoTable.finalY+8;
+  doc.setFont('helvetica','bold');doc.text('Productos vendidos',14,y);
+  doc.autoTable({startY:y+3,head:[['Producto','Unidades','Ventas']],body:Object.entries(d.products).sort((a,b)=>b[1].qty-a[1].qty).map(([k,v])=>[k,String(v.qty),fmt(v.total)]),theme:'grid'});
+  y=doc.lastAutoTable.finalY+8;doc.text('Medios de pago',14,y);
+  doc.autoTable({startY:y+3,head:[['Medio','Total']],body:Object.entries(d.payments).map(([k,v])=>[k,fmt(v)]),theme:'grid'});
+  y=doc.lastAutoTable.finalY+8;doc.text('Cierres de caja',14,y);
+  doc.autoTable({startY:y+3,head:[['Apertura','Cierre','Esperado','Contado','Diferencia']],body:d.cash.map(x=>[dt(x.apertura),dt(x.cierre),fmt(x.efectivo_esperado||0),x.efectivo_contado==null?'—':fmt(x.efectivo_contado),x.diferencia==null?'—':fmt(x.diferencia)]),theme:'grid',styles:{fontSize:7}});
+  doc.save(filename('pdf'));toast('PDF generado correctamente');
+ }catch(e){toast('No se pudo generar PDF: '+(e?.message||e));}
+};
+window.exportMorochasExcel=async()=>{
+ try{
+  toast('Preparando Excel...');
+  const d=await getData();
+  await loadScript('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js','XLSX');
+  const wb=XLSX.utils.book_new();
+  const summary=[['MOROCHAS BAKERY - INFORME GERENCIAL'],['Periodo',d.from+' al '+d.to],[],['Indicador','Valor'],['Ventas',d.revenue],['Costo vendido',d.cost],['Utilidad bruta',d.gross],['Gastos',d.expense],['Utilidad neta estimada',d.net],['Margen neto %',d.margin],['Ticket promedio',d.ticket],['Numero de ventas',d.sales.length]];
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(summary),'Resumen');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(Object.entries(d.products).map(([k,v])=>({Producto:k,Unidades:v.qty,Ventas:v.total}))),'Productos');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(d.sales.map(x=>({Fecha:dt(x.created_at),Total:+x.total||0,'Medio de pago':x.metodo_pago||''}))),'Ventas');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(d.expenses.map(x=>({Fecha:dt(x.created_at),Concepto:x.concepto||'',Categoria:x.categoria||'',Monto:+x.monto||0,'Medio de pago':x.metodo_pago||''}))),'Gastos');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(Object.entries(d.payments).map(([k,v])=>({'Medio de pago':k,Total:v}))),'Medios de pago');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(d.cash.map(x=>({Apertura:dt(x.apertura),Cierre:dt(x.cierre),'Fondo inicial':+x.fondo_inicial||0,Esperado:+x.efectivo_esperado||0,Contado:x.efectivo_contado==null?'':+x.efectivo_contado,Diferencia:x.diferencia==null?'':+x.diferencia,Estado:x.estado||''}))),'Cierres de caja');
+  XLSX.writeFile(wb,filename('xlsx'));toast('Excel generado correctamente');
+ }catch(e){toast('No se pudo generar Excel: '+(e?.message||e));}
+};
+})();
+</script>
+<style>
+@media print{
+ body{background:#fff!important}.topbar,.nav,.actions,#toast{display:none!important}
+ main{max-width:none!important;margin:0!important;padding:10mm!important}.view{display:none!important}#reportes{display:block!important}
+ #reportes .panel,#reportes .card{box-shadow:none!important;break-inside:avoid;border:1px solid #bbb!important}
+ #reportes h2:after{content:" · Informe gerencial";font-size:14px;font-weight:400}
+}
+</style>
 \n</body></html>
