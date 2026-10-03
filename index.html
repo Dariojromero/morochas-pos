@@ -1025,7 +1025,7 @@ window.exportMorochasPDF=async()=>{
   toast('Preparando PDF...');
   const d=await getData();
   await loadScript('https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js','jspdf');
-  await loadScript('https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js','jspdf');
+  await loadScript('https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js','__morochasAutoTableLoaded');
   const {jsPDF}=window.jspdf,doc=new jsPDF({unit:'mm',format:'a4'});
   doc.setFont('helvetica','bold');doc.setFontSize(18);doc.text('MOROCHAS BAKERY',14,16);
   doc.setFontSize(11);doc.text('Informe gerencial',14,23);doc.setFont('helvetica','normal');doc.text('Periodo: '+d.from+' al '+d.to,14,29);
