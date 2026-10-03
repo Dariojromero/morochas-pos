@@ -1005,7 +1005,7 @@ window.renderReports=async function(){
   sales.forEach(x=>{const p=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Santiago',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(x.created_at));if(p in days)days[p]+=+x.total||0;});
   const max=Math.max(1,...Object.values(days)),chart=document.getElementById('reportDailyChart');
   if(chart)chart.innerHTML='<div class="mgr-chart">'+Object.entries(days).map(([d,v])=>'<div class="mgr-barcol"><div class="mgr-barvalue">'+fmt(v)+'</div><div class="mgr-bar" style="height:'+Math.max(3,v/max*115)+'px"></div><div class="mgr-barlabel">'+d.slice(8,10)+'/'+d.slice(5,7)+'</div></div>').join('')+'</div>';
-  const methods={};sales.forEach(x=>{const k=(x.metodo_pago||'otro').toLowerCase();methods[k]=(methods[k]||0)+(+x.total||0);});const pmax=Math.max(1,...Object.values(methods)),pc=document.getElementById('reportPaymentChart');
+  const legacyPay=document.getElementById('reportPayments');if(legacyPay)legacyPay.style.display='none';const methods={};sales.forEach(x=>{const k=(x.metodo_pago||'otro').toLowerCase();methods[k]=(methods[k]||0)+(+x.total||0);});const pmax=Math.max(1,...Object.values(methods)),pc=document.getElementById('reportPaymentChart');
   if(pc)pc.innerHTML=Object.entries(methods).sort((a,b)=>b[1]-a[1]).map(([k,v])=>'<div class="mgr-pay"><b>'+esc(k.charAt(0).toUpperCase()+k.slice(1))+'</b><div class="mgr-track"><div class="mgr-fill" style="width:'+(v/pmax*100)+'%"></div></div><b style="text-align:right">'+fmt(v)+'</b></div>').join('')||'<div class="empty">Sin ventas en el período</div>';
  }catch(e){console.error('Manager report:',e);}
 };
