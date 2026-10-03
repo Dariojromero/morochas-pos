@@ -814,4 +814,63 @@ window.saveSupplierPayment=async function(){
 };
 })();
 </script>
+
+<!-- MOROCHAS_CASH_HISTORY_FIX_V3 -->
+<script>
+(()=>{
+const money=n=>typeof fmt==='function'?fmt(+n||0):new Intl.NumberFormat('es-CL',{style:'currency',currency:'CLP',maximumFractionDigits:0}).format(+n||0);
+const dateTime=iso=>{
+ if(!iso)return '—';
+ try{return new Intl.DateTimeFormat('es-CL',{timeZone:'America/Santiago',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(iso));}
+ catch(e){return '—';}
+};
+const safe=s=>typeof esc==='function'?esc(String(s??'')):String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+window.loadCashHistory=async function(){
+ const body=document.getElementById('cashHistoryTable');
+ const sb=window.morochasSupabase;
+ if(!body)return;
+ if(!sb||!window.MOROCHAS_USER){
+   body.innerHTML='<tr><td colspan="11" class="empty">Esperando sesión...</td></tr>'; return;
+ }
+ body.innerHTML='<tr><td colspan="11" class="empty">Cargando historial...</td></tr>';
+ try{
+   const {data:sessions,error}=await sb.from('cash_sessions')
+     .select('id,opened_by,closed_by,apertura,cierre,fondo_inicial,efectivo_esperado,efectivo_contado,diferencia,estado')
+     .order('apertura',{ascending:false}).limit(50);
+   if(error)throw error;
+   if(!sessions?.length){
+     body.innerHTML='<tr><td colspan="11" class="empty">Aún no hay cajas registradas.</td></tr>'; return;
+   }
+   const ids=sessions.map(x=>x.id);
+   const [salesRes,expRes,payRes]=await Promise.all([
+     sb.from('sales').select('cash_session_id,total,metodo_pago').in('cash_session_id',ids),
+     sb.from('expenses').select('cash_session_id,monto,metodo_pago').in('cash_session_id',ids),
+     sb.from('supplier_payments').select('cash_session_id,monto,metodo_pago').in('cash_session_id',ids)
+   ]);
+   const sales=salesRes.error?[]:(salesRes.data||[]);
+   const expenses=expRes.error?[]:(expRes.data||[]);
+   const supplierPays=payRes.error?[]:(payRes.data||[]);
+   const me=window.MOROCHAS_USER;
+   const who=id=>!id?'—':id===me.id?safe(me.nombre||'Usuario'):'Otro usuario';
+   body.innerHTML=sessions.map(x=>{
+     const ventas=sales.filter(v=>v.cash_session_id===x.id&&String(v.metodo_pago||'').toLowerCase()==='efectivo').reduce((a,v)=>a+(+v.total||0),0);
+     const gastos=expenses.filter(v=>v.cash_session_id===x.id&&String(v.metodo_pago||'').toLowerCase()==='efectivo').reduce((a,v)=>a+(+v.monto||0),0);
+     const pagos=supplierPays.filter(v=>v.cash_session_id===x.id&&String(v.metodo_pago||'').toLowerCase()==='efectivo').reduce((a,v)=>a+(+v.monto||0),0);
+     const salidas=gastos+pagos;
+     const expected=x.efectivo_esperado==null?((+x.fondo_inicial||0)+ventas-salidas):(+x.efectivo_esperado||0);
+     const counted=x.efectivo_contado;
+     const diff=x.diferencia==null?(counted==null?null:(+counted-expected)):+x.diferencia;
+     const diffHtml=diff==null?'—':'<span style="font-weight:700;color:'+(diff===0?'#28724f':'#b5463c')+'">'+money(diff)+'</span>';
+     return '<tr><td>'+dateTime(x.apertura)+'</td><td>'+dateTime(x.cierre)+'</td><td>'+who(x.opened_by)+'</td><td>'+who(x.closed_by)+'</td><td>'+money(x.fondo_inicial)+'</td><td>'+money(ventas)+'</td><td>'+money(salidas)+'</td><td>'+money(expected)+'</td><td>'+(counted==null?'—':money(counted))+'</td><td>'+diffHtml+'</td><td><span class="tag '+(x.estado==='cerrada'?'ok':'')+'">'+safe(x.estado||'—')+'</span></td></tr>';
+   }).join('');
+ }catch(e){
+   body.innerHTML='<tr><td colspan="11" class="empty">No se pudo cargar el historial: '+safe(e?.message||e)+'</td></tr>';
+ }
+};
+const previousShow=window.showView;
+if(typeof previousShow==='function')window.showView=function(id,btn){previousShow(id,btn);if(id==='caja')window.loadCashHistory();};
+const timer=setInterval(()=>{if(window.MOROCHAS_USER&&window.morochasSupabase){clearInterval(timer);window.loadCashHistory();}},300);
+setTimeout(()=>clearInterval(timer),15000);
+})();
+</script>
 \n</body></html>
