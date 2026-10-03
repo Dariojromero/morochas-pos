@@ -12,7 +12,7 @@
 <section id="proveedores" class="view"><div class="hero"><div><h2>Proveedores</h2><div class="sub">Ficha de proveedores, cuentas por pagar y estado.</div></div></div><div class="panel"><input id="supplierId" type="hidden"><div class="formgrid3"><label>Nombre / razón social<input id="supplierName" placeholder="Ej. Distribuidora Central"></label><label>RUT<input id="supplierRut" placeholder="Ej. 76.123.456-7"></label><label>Teléfono<input id="supplierPhone" placeholder="+56 9..."></label><label>Email<input id="supplierEmail" type="email" placeholder="ventas@proveedor.cl"></label><label style="grid-column:span 2">Dirección<input id="supplierAddress" placeholder="Dirección del proveedor"></label></div><div class="actions"><button class="btn primary" id="supplierSaveBtn" onclick="saveCloudSupplier()">Agregar proveedor</button><button class="btn" id="supplierCancelBtn" onclick="cancelSupplierEdit()" style="display:none">Cancelar edición</button></div></div><div class="tablewrap"><table class="table"><thead><tr><th>Proveedor</th><th>RUT</th><th>Teléfono</th><th>Email</th><th>Dirección</th><th>Saldo pendiente</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="supplierTable"></tbody></table></div></section>
 <section id="clientes" class="view"><div class="hero"><div><h2>Clientes y créditos</h2><div class="sub">Registra ventas a crédito, deuda y abonos.</div></div></div><div class="panel"><div class="formgrid3"><label>Cliente<input id="customerName"></label><label>Teléfono<input id="customerPhone"></label><label>Límite de crédito<input id="customerLimit" type="number"></label></div><button class="btn primary" onclick="addCustomer()">Agregar cliente</button></div><div class="tablewrap"><table class="table"><thead><tr><th>Cliente</th><th>Teléfono</th><th>Límite</th><th>Deuda</th><th></th></tr></thead><tbody id="customerTable"></tbody></table></div><div class="panel"><h3>Movimientos de crédito</h3><div class="tablewrap"><table class="table"><thead><tr><th>Fecha</th><th>Cliente</th><th>Monto</th><th>Estado</th></tr></thead><tbody id="creditTable"></tbody></table></div></div></section>
 <section id="recetas" class="view"><div class="hero"><div><h2>Recetas y producción</h2><div class="sub">La producción consume materias primas y aumenta producto terminado.</div></div></div><div class="panel"><h3>Nueva receta</h3><div class="formgrid3"><label>Producto terminado<select id="recipeProduct"></select></label><label>Rendimiento<input id="recipeOutput" type="number" step="0.001"></label><label>Ingrediente<select id="ingredientProduct"></select></label></div><div class="formgrid"><label>Cantidad ingrediente<input id="ingredientQty" type="number" step="0.001"></label><div style="padding-top:25px"><button class="btn" onclick="addIngredient()">+ Agregar ingrediente</button></div></div><div id="ingredientList"></div><button class="btn primary" onclick="saveRecipe()" style="margin-top:8px">Guardar receta</button></div><div class="tablewrap"><table class="table"><thead><tr><th>Producto</th><th>Rendimiento</th><th>Ingredientes</th><th>Producción</th></tr></thead><tbody id="recipeTable"></tbody></table></div></section>
-<section id="reportes" class="view"><div class="hero"><div><h2>Reportes</h2><div class="sub">Resumen mensual según los movimientos registrados en el POS.</div></div><label style="min-width:150px">Mes<input id="reportMonth" type="month" onchange="renderReports()"></label></div><div id="reportCards" class="cards"></div><div class="panel"><h3>Productos vendidos</h3><div class="tablewrap"><table class="table"><thead><tr><th>#</th><th>Producto</th><th>Unidades</th></tr></thead><tbody id="reportTable"></tbody></table></div></div></section>
+<section id="reportes" class="view"><div class="hero"><div><h2>Reportes</h2><div class="sub">Resultados reales registrados en Supabase.</div></div><div class="actions"><label>Desde<input id="reportFrom" type="date" onchange="renderReports()"></label><label>Hasta<input id="reportTo" type="date" onchange="renderReports()"></label><button class="btn" onclick="setReportToday()">Hoy</button><button class="btn" onclick="setReportMonth()">Este mes</button><button class="btn gold" onclick="renderReports()">Actualizar</button></div></div><div id="reportCards" class="cards"></div><div class="panel"><h3>Medios de pago</h3><div id="reportPayments"></div></div><div class="panel"><h3>Productos vendidos</h3><div class="tablewrap"><table class="table"><thead><tr><th>#</th><th>Producto</th><th>Unidades</th><th>Ventas</th></tr></thead><tbody id="reportTable"></tbody></table></div></div><div class="panel"><h3>Cierres de caja</h3><div class="tablewrap"><table class="table"><thead><tr><th>Apertura</th><th>Cierre</th><th>Esperado</th><th>Contado</th><th>Diferencia</th><th>Estado</th></tr></thead><tbody id="reportCashTable"></tbody></table></div></div></section>
 <section id="config" class="view"><div class="hero"><div><h2>Datos y respaldo</h2><div class="sub">El POS guarda la información en este navegador.</div></div><img src="data:image/png;base64,{b64}" class="logo-big"></div><div class="panel"><div id="configStats"></div></div><div class="panel"><h3>Respaldo</h3><div class="successbox">Exporta una copia JSON regularmente. Si cambias de computador o navegador, puedes importarla.</div><div class="actions" style="margin-top:10px"><button class="btn gold" onclick="exportBackup()">⬇ Exportar respaldo</button><label class="btn" style="display:inline-block">⬆ Importar respaldo<input type="file" accept="application/json" onchange="importBackup(this.files[0])" style="display:none"></label></div></div><div class="dangerbox"><b>Importante:</b> este POS es un sistema operativo interno. No reemplaza la contabilidad ni la emisión fiscal SII. Mantén respaldos.</div><div class="panel"><button class="btn red" onclick="resetData()">Borrar datos del POS 3.0</button></div></section>
 <div id="productModal" class="modal"><div class="modalbox"><div class="sectiontitle"><h2>Editar producto</h2><button class="btn" onclick="closeModal('productModal')">✕</button></div><input type="hidden" id="editProductId"><div class="formgrid"><label>Nombre<input id="epName"></label><label>Categoría<input id="epCat"></label><label>Precio venta<input id="epPrice" type="number"></label><label>Costo unitario<input id="epCost" type="number"></label><label>Stock actual<input id="epStock" type="number" step="0.001"></label><label>Stock mínimo<input id="epMin" type="number" step="0.001"></label><label>Unidad<input id="epUnit"></label><label>Tipo<select id="epType"><option value="finished">Producto terminado</option><option value="raw">Materia prima</option></select></label></div><label>Foto del producto<input id="epPhoto" type="file" accept="image/*" onchange="previewProductPhoto(this)"></label><img id="epPhotoPreview" class="photo-preview" alt="Foto del producto"><div class="mini">La foto se comprime y guarda dentro del sistema. Recomendado: imagen cuadrada o vertical.</div><label><input id="epTrack" type="checkbox" style="width:auto"> Controlar stock</label><label><input id="epActive" type="checkbox" style="width:auto"> Producto activo / disponible para venta</label><div class="actions"><button class="btn primary" onclick="saveProduct()">Guardar</button><button id="toggleProductBtn" class="btn red" onclick="toggleProductStatus()">Dar de baja</button><button class="btn" onclick="closeModal('productModal')">Cancelar</button></div></div></div>
 <div id="creditModal" class="modal"><div class="modalbox"><h2>Venta a crédito</h2><label>Cliente<select id="saleCustomer"></select></label><div class="actions"><button class="btn gold" onclick="confirmCredit()">Registrar crédito</button><button class="btn" onclick="closeModal('creditModal')">Cancelar</button></div></div></div>
@@ -871,6 +871,61 @@ const previousShow=window.showView;
 if(typeof previousShow==='function')window.showView=function(id,btn){previousShow(id,btn);if(id==='caja')window.loadCashHistory();};
 const timer=setInterval(()=>{if(window.MOROCHAS_USER&&window.morochasSupabase){clearInterval(timer);window.loadCashHistory();}},300);
 setTimeout(()=>clearInterval(timer),15000);
+})();
+</script>
+
+<!-- MOROCHAS_CLOUD_REPORTS_V1 -->
+<script>
+(()=>{
+const cashMethods=new Set(['efectivo']);
+const clp=n=>fmt(+n||0);
+const dtime=iso=>iso?new Intl.DateTimeFormat('es-CL',{timeZone:'America/Santiago',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(iso)):'—';
+const dayBounds=(d,end=false)=>new Date(d+'T'+(end?'23:59:59.999':'00:00:00')+'-03:00').toISOString();
+function ensureDates(){
+ const f=document.getElementById('reportFrom'),t=document.getElementById('reportTo');if(!f||!t)return;
+ if(!f.value||!t.value){const now=new Date(),y=now.getFullYear(),m=String(now.getMonth()+1).padStart(2,'0'),d=String(now.getDate()).padStart(2,'0');f.value=y+'-'+m+'-01';t.value=y+'-'+m+'-'+d;}
+}
+window.setReportToday=()=>{const d=today();document.getElementById('reportFrom').value=d;document.getElementById('reportTo').value=d;window.renderReports();};
+window.setReportMonth=()=>{const now=new Date(),y=now.getFullYear(),m=String(now.getMonth()+1).padStart(2,'0');document.getElementById('reportFrom').value=y+'-'+m+'-01';document.getElementById('reportTo').value=today();window.renderReports();};
+window.renderReports=async function(){
+ ensureDates();
+ const sb=window.morochasSupabase,cards=document.getElementById('reportCards'),tbody=document.getElementById('reportTable'),payBox=document.getElementById('reportPayments'),cashBody=document.getElementById('reportCashTable');
+ if(!cards||!tbody)return;
+ if(!sb||!window.MOROCHAS_USER){cards.innerHTML='<div class="card"><span class="label">Esperando sesión...</span></div>';return;}
+ const from=document.getElementById('reportFrom').value,to=document.getElementById('reportTo').value;
+ if(!from||!to||from>to)return toast('Revisa el rango de fechas');
+ cards.innerHTML='<div class="card"><span class="label">Cargando reporte...</span></div>';
+ try{
+  const start=dayBounds(from),end=dayBounds(to,true);
+  const [sr,er,pr,cr]=await Promise.all([
+   sb.from('sales').select('id,total,metodo_pago,created_at').gte('created_at',start).lte('created_at',end).order('created_at'),
+   sb.from('expenses').select('monto,metodo_pago,created_at').gte('created_at',start).lte('created_at',end),
+   sb.from('supplier_payments').select('monto,metodo_pago,created_at').gte('created_at',start).lte('created_at',end),
+   sb.from('cash_sessions').select('apertura,cierre,efectivo_esperado,efectivo_contado,diferencia,estado').gte('apertura',start).lte('apertura',end).order('apertura',{ascending:false})
+  ]);
+  if(sr.error)throw sr.error;if(er.error)throw er.error;if(pr.error)throw pr.error;if(cr.error)throw cr.error;
+  const salesRows=sr.data||[],expenseRows=er.data||[],supplierRows=pr.data||[],cashRows=cr.data||[];
+  let items=[];
+  if(salesRows.length){const ir=await sb.from('sale_items').select('sale_id,producto_nombre,cantidad,precio_unitario,costo_unitario').in('sale_id',salesRows.map(x=>x.id));if(ir.error)throw ir.error;items=ir.data||[];}
+  const revenue=salesRows.reduce((a,x)=>a+(+x.total||0),0);
+  const cost=items.reduce((a,x)=>a+(+x.costo_unitario||0)*(+x.cantidad||0),0);
+  const expensesTotal=expenseRows.reduce((a,x)=>a+(+x.monto||0),0);
+  const supplierTotal=supplierRows.reduce((a,x)=>a+(+x.monto||0),0);
+  const estimated=revenue-cost-expensesTotal;
+  cards.innerHTML='<div class="card accent"><span class="label">Ventas</span><strong>'+clp(revenue)+'</strong><span class="mini">'+salesRows.length+' transacciones</span></div>'+
+   '<div class="card"><span class="label">Costo vendido</span><strong>'+clp(cost)+'</strong></div>'+
+   '<div class="card"><span class="label">Gastos</span><strong>'+clp(expensesTotal)+'</strong></div>'+
+   '<div class="card"><span class="label">Resultado estimado</span><strong>'+clp(estimated)+'</strong></div>'+
+   '<div class="card"><span class="label">Pagos a proveedores</span><strong>'+clp(supplierTotal)+'</strong><span class="mini">Flujo de caja, no se resta otra vez del resultado</span></div>';
+  const methods={};salesRows.forEach(x=>{const k=(x.metodo_pago||'otro').toLowerCase();methods[k]=(methods[k]||0)+(+x.total||0);});
+  payBox.innerHTML=Object.entries(methods).sort((a,b)=>b[1]-a[1]).map(([k,v])=>'<div class="row"><span>'+esc(k.charAt(0).toUpperCase()+k.slice(1))+'</span><b>'+clp(v)+'</b></div>').join('')||'<div class="empty">Sin ventas en el período</div>';
+  const rank={};items.forEach(i=>{const k=i.producto_nombre||'Producto';if(!rank[k])rank[k]={qty:0,total:0};rank[k].qty+=+i.cantidad||0;rank[k].total+=(+i.precio_unitario||0)*(+i.cantidad||0);});
+  tbody.innerHTML=Object.entries(rank).sort((a,b)=>b[1].qty-a[1].qty).map(([name,v],i)=>'<tr><td>'+(i+1)+'</td><td>'+esc(name)+'</td><td>'+num(v.qty)+'</td><td>'+clp(v.total)+'</td></tr>').join('')||'<tr><td colspan="4" class="empty">Sin productos vendidos</td></tr>';
+  cashBody.innerHTML=cashRows.map(x=>{const diff=x.diferencia==null?null:+x.diferencia;return '<tr><td>'+dtime(x.apertura)+'</td><td>'+dtime(x.cierre)+'</td><td>'+(x.efectivo_esperado==null?'—':clp(x.efectivo_esperado))+'</td><td>'+(x.efectivo_contado==null?'—':clp(x.efectivo_contado))+'</td><td>'+(diff==null?'—':'<b style="color:'+(diff===0?'#28724f':'#b5463c')+'">'+clp(diff)+'</b>')+'</td><td>'+esc(x.estado||'—')+'</td></tr>';}).join('')||'<tr><td colspan="6" class="empty">Sin cierres en el período</td></tr>';
+ }catch(e){cards.innerHTML='<div class="dangerbox">No se pudo cargar el reporte: '+esc(e?.message||e)+'</div>';}
+};
+const oldShow=window.showView;
+if(typeof oldShow==='function')window.showView=function(id,btn){oldShow(id,btn);if(id==='reportes')window.renderReports();};
 })();
 </script>
 \n</body></html>
