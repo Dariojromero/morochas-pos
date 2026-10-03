@@ -552,6 +552,8 @@ window.renderCash=async function(){
   '<div class="row"><span>Efectivo contado</span><b>'+(hasCount?fmt(n):'—')+'</b></div>'+
   '<div class="row"><span>Diferencia</span><b class="'+(hasCount?(diff>=0?'ok':'bad'):'')+'">'+(hasCount?fmt(diff):'—')+'</b></div>';
  window.MOROCHAS_CASH_EXPECTED=expected;
+ window.MOROCHAS_CASH_SALES=cashSales;
+ window.MOROCHAS_CASH_OUTFLOWS=cashOut;
 };
 ensureExpensePayment();
 const oldShowExpenses=window.showView;
