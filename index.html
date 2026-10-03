@@ -12,7 +12,7 @@
 <section id="proveedores" class="view"><div class="hero"><div><h2>Proveedores</h2><div class="sub">Ficha de proveedores, cuentas por pagar y estado.</div></div></div><div class="panel"><input id="supplierId" type="hidden"><div class="formgrid3"><label>Nombre / razón social<input id="supplierName" placeholder="Ej. Distribuidora Central"></label><label>RUT<input id="supplierRut" placeholder="Ej. 76.123.456-7"></label><label>Teléfono<input id="supplierPhone" placeholder="+56 9..."></label><label>Email<input id="supplierEmail" type="email" placeholder="ventas@proveedor.cl"></label><label style="grid-column:span 2">Dirección<input id="supplierAddress" placeholder="Dirección del proveedor"></label></div><div class="actions"><button class="btn primary" id="supplierSaveBtn" onclick="saveCloudSupplier()">Agregar proveedor</button><button class="btn" id="supplierCancelBtn" onclick="cancelSupplierEdit()" style="display:none">Cancelar edición</button></div></div><div class="tablewrap"><table class="table"><thead><tr><th>Proveedor</th><th>RUT</th><th>Teléfono</th><th>Email</th><th>Dirección</th><th>Saldo pendiente</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="supplierTable"></tbody></table></div></section>
 <section id="clientes" class="view"><div class="hero"><div><h2>Clientes y créditos</h2><div class="sub">Registra ventas a crédito, deuda y abonos.</div></div></div><div class="panel"><div class="formgrid3"><label>Cliente<input id="customerName"></label><label>Teléfono<input id="customerPhone"></label><label>Límite de crédito<input id="customerLimit" type="number"></label></div><button class="btn primary" onclick="addCustomer()">Agregar cliente</button></div><div class="tablewrap"><table class="table"><thead><tr><th>Cliente</th><th>Teléfono</th><th>Límite</th><th>Deuda</th><th></th></tr></thead><tbody id="customerTable"></tbody></table></div><div class="panel"><h3>Movimientos de crédito</h3><div class="tablewrap"><table class="table"><thead><tr><th>Fecha</th><th>Cliente</th><th>Monto</th><th>Estado</th></tr></thead><tbody id="creditTable"></tbody></table></div></div></section>
 <section id="recetas" class="view"><div class="hero"><div><h2>Recetas y producción</h2><div class="sub">La producción consume materias primas y aumenta producto terminado.</div></div></div><div class="panel"><h3>Nueva receta</h3><div class="formgrid3"><label>Producto terminado<select id="recipeProduct"></select></label><label>Rendimiento<input id="recipeOutput" type="number" step="0.001"></label><label>Ingrediente<select id="ingredientProduct"></select></label></div><div class="formgrid"><label>Cantidad ingrediente<input id="ingredientQty" type="number" step="0.001"></label><div style="padding-top:25px"><button class="btn" onclick="addIngredient()">+ Agregar ingrediente</button></div></div><div id="ingredientList"></div><button class="btn primary" onclick="saveRecipe()" style="margin-top:8px">Guardar receta</button></div><div class="tablewrap"><table class="table"><thead><tr><th>Producto</th><th>Rendimiento</th><th>Ingredientes</th><th>Producción</th></tr></thead><tbody id="recipeTable"></tbody></table></div></section>
-<section id="reportes" class="view"><div class="hero"><div><h2>Reportes</h2><div class="sub">Resultados reales registrados en Supabase.</div></div><div class="actions"><label>Desde<input id="reportFrom" type="date" onchange="renderReports()"></label><label>Hasta<input id="reportTo" type="date" onchange="renderReports()"></label><button class="btn" onclick="setReportToday()">Hoy</button><button class="btn" onclick="setReportMonth()">Este mes</button><button class="btn gold" onclick="renderReports()">Actualizar</button></div></div><div id="reportCards" class="cards"></div><div class="panel"><h3>Medios de pago</h3><div id="reportPayments"></div></div><div class="panel"><h3>Productos vendidos</h3><div class="tablewrap"><table class="table"><thead><tr><th>#</th><th>Producto</th><th>Unidades</th><th>Ventas</th></tr></thead><tbody id="reportTable"></tbody></table></div></div><div class="panel"><h3>Cierres de caja</h3><div class="tablewrap"><table class="table"><thead><tr><th>Apertura</th><th>Cierre</th><th>Esperado</th><th>Contado</th><th>Diferencia</th><th>Estado</th></tr></thead><tbody id="reportCashTable"></tbody></table></div></div></section>
+<section id="reportes" class="view"><div class="hero"><div><h2>Reportes</h2><div class="sub">Informe gerencial de Morochas Bakery · datos reales de Supabase.</div></div><div class="actions"><label>Desde<input id="reportFrom" type="date" onchange="renderReports()"></label><label>Hasta<input id="reportTo" type="date" onchange="renderReports()"></label><button class="btn" onclick="setReportToday()">Hoy</button><button class="btn" onclick="setReportWeek()">Semana</button><button class="btn" onclick="setReportMonth()">Este mes</button><button class="btn gold" onclick="renderReports()">Actualizar</button></div></div><div id="reportCards" class="cards"></div><div class="panel"><h3>Ventas por día</h3><div id="reportDailyChart" style="min-height:190px"></div></div><div class="panel"><h3>Medios de pago</h3><div id="reportPaymentChart" style="margin-bottom:12px"></div><div id="reportPayments"></div></div><div class="panel"><h3>Productos vendidos</h3><div class="tablewrap"><table class="table"><thead><tr><th>#</th><th>Producto</th><th>Unidades</th><th>Ventas</th></tr></thead><tbody id="reportTable"></tbody></table></div></div><div class="panel"><h3>Cierres de caja</h3><div class="tablewrap"><table class="table"><thead><tr><th>Apertura</th><th>Cierre</th><th>Esperado</th><th>Contado</th><th>Diferencia</th><th>Estado</th></tr></thead><tbody id="reportCashTable"></tbody></table></div></div></section>
 <section id="config" class="view"><div class="hero"><div><h2>Datos y respaldo</h2><div class="sub">El POS guarda la información en este navegador.</div></div><img src="data:image/png;base64,{b64}" class="logo-big"></div><div class="panel"><div id="configStats"></div></div><div class="panel"><h3>Respaldo</h3><div class="successbox">Exporta una copia JSON regularmente. Si cambias de computador o navegador, puedes importarla.</div><div class="actions" style="margin-top:10px"><button class="btn gold" onclick="exportBackup()">⬇ Exportar respaldo</button><label class="btn" style="display:inline-block">⬆ Importar respaldo<input type="file" accept="application/json" onchange="importBackup(this.files[0])" style="display:none"></label></div></div><div class="dangerbox"><b>Importante:</b> este POS es un sistema operativo interno. No reemplaza la contabilidad ni la emisión fiscal SII. Mantén respaldos.</div><div class="panel"><button class="btn red" onclick="resetData()">Borrar datos del POS 3.0</button></div></section>
 <div id="productModal" class="modal"><div class="modalbox"><div class="sectiontitle"><h2>Editar producto</h2><button class="btn" onclick="closeModal('productModal')">✕</button></div><input type="hidden" id="editProductId"><div class="formgrid"><label>Nombre<input id="epName"></label><label>Categoría<input id="epCat"></label><label>Precio venta<input id="epPrice" type="number"></label><label>Costo unitario<input id="epCost" type="number"></label><label>Stock actual<input id="epStock" type="number" step="0.001"></label><label>Stock mínimo<input id="epMin" type="number" step="0.001"></label><label>Unidad<input id="epUnit"></label><label>Tipo<select id="epType"><option value="finished">Producto terminado</option><option value="raw">Materia prima</option></select></label></div><label>Foto del producto<input id="epPhoto" type="file" accept="image/*" onchange="previewProductPhoto(this)"></label><img id="epPhotoPreview" class="photo-preview" alt="Foto del producto"><div class="mini">La foto se comprime y guarda dentro del sistema. Recomendado: imagen cuadrada o vertical.</div><label><input id="epTrack" type="checkbox" style="width:auto"> Controlar stock</label><label><input id="epActive" type="checkbox" style="width:auto"> Producto activo / disponible para venta</label><div class="actions"><button class="btn primary" onclick="saveProduct()">Guardar</button><button id="toggleProductBtn" class="btn red" onclick="toggleProductStatus()">Dar de baja</button><button class="btn" onclick="closeModal('productModal')">Cancelar</button></div></div></div>
 <div id="creditModal" class="modal"><div class="modalbox"><h2>Venta a crédito</h2><label>Cliente<select id="saleCustomer"></select></label><div class="actions"><button class="btn gold" onclick="confirmCredit()">Registrar crédito</button><button class="btn" onclick="closeModal('creditModal')">Cancelar</button></div></div></div>
@@ -926,6 +926,64 @@ window.renderReports=async function(){
 };
 const oldShow=window.showView;
 if(typeof oldShow==='function')window.showView=function(id,btn){oldShow(id,btn);if(id==='reportes')window.renderReports();};
+})();
+</script>
+
+<!-- MOROCHAS_MANAGER_REPORTS_V2 -->
+<style>
+#reportes .cards{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+.mgr-chart{display:flex;align-items:flex-end;gap:10px;height:165px;padding:12px 4px 0;border-bottom:1px solid #dfcfb3;overflow-x:auto}
+.mgr-barcol{min-width:54px;flex:1;text-align:center;height:100%;display:flex;flex-direction:column;justify-content:flex-end}
+.mgr-barvalue{font-size:11px;font-weight:700;margin-bottom:4px;white-space:nowrap}
+.mgr-bar{background:linear-gradient(180deg,#d5a33a,#9d6a16);border-radius:7px 7px 2px 2px;min-height:3px}
+.mgr-barlabel{font-size:10px;margin-top:5px;white-space:nowrap}
+.mgr-pay{display:grid;grid-template-columns:110px 1fr 90px;gap:10px;align-items:center;margin:8px 0}
+.mgr-track{height:12px;background:#eee2cc;border-radius:99px;overflow:hidden}.mgr-fill{height:100%;background:#c99129;border-radius:99px}
+@media(max-width:700px){.mgr-pay{grid-template-columns:80px 1fr 70px}.mgr-chart{height:145px}}
+</style>
+<script>
+(()=>{
+window.setReportWeek=()=>{const n=new Date(),day=(n.getDay()+6)%7,m=new Date(n);m.setDate(n.getDate()-day);const f=x=>x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');document.getElementById('reportFrom').value=f(m);document.getElementById('reportTo').value=f(n);window.renderReports();};
+const old=window.renderReports;
+window.renderReports=async function(){
+ await old();
+ const sb=window.morochasSupabase;
+ if(!sb||!window.MOROCHAS_USER)return;
+ const from=document.getElementById('reportFrom')?.value,to=document.getElementById('reportTo')?.value;
+ if(!from||!to||from>to)return;
+ const start=new Date(from+'T00:00:00-03:00').toISOString(),end=new Date(to+'T23:59:59.999-03:00').toISOString();
+ try{
+  const [sr,er]=await Promise.all([
+   sb.from('sales').select('id,total,metodo_pago,created_at').gte('created_at',start).lte('created_at',end).order('created_at'),
+   sb.from('expenses').select('monto,created_at').gte('created_at',start).lte('created_at',end)
+  ]);
+  if(sr.error)throw sr.error;if(er.error)throw er.error;
+  const sales=sr.data||[],expenses=er.data||[];
+  let items=[];if(sales.length){const ir=await sb.from('sale_items').select('sale_id,producto_nombre,cantidad,precio_unitario,costo_unitario').in('sale_id',sales.map(x=>x.id));if(ir.error)throw ir.error;items=ir.data||[];}
+  const revenue=sales.reduce((a,x)=>a+(+x.total||0),0),cost=items.reduce((a,x)=>a+(+x.costo_unitario||0)*(+x.cantidad||0),0),exp=expenses.reduce((a,x)=>a+(+x.monto||0),0);
+  const gross=revenue-cost,net=gross-exp,margin=revenue?net/revenue*100:0,ticket=sales.length?revenue/sales.length:0;
+  const rank={};items.forEach(i=>{const k=i.producto_nombre||'Producto';rank[k]=(rank[k]||0)+(+i.cantidad||0);});
+  const top=Object.entries(rank).sort((a,b)=>b[1]-a[1])[0];
+  const cards=document.getElementById('reportCards');
+  if(cards)cards.innerHTML=
+   '<div class="card accent"><span class="label">Ventas</span><strong>'+fmt(revenue)+'</strong><span class="mini">'+sales.length+' transacciones</span></div>'+
+   '<div class="card"><span class="label">Costo vendido</span><strong>'+fmt(cost)+'</strong></div>'+
+   '<div class="card"><span class="label">Utilidad bruta</span><strong>'+fmt(gross)+'</strong></div>'+
+   '<div class="card"><span class="label">Gastos</span><strong>'+fmt(exp)+'</strong></div>'+
+   '<div class="card accent"><span class="label">Utilidad neta estimada</span><strong>'+fmt(net)+'</strong></div>'+
+   '<div class="card"><span class="label">Margen neto</span><strong>'+margin.toLocaleString("es-CL",{maximumFractionDigits:1})+'%</strong></div>'+
+   '<div class="card"><span class="label">Ticket promedio</span><strong>'+fmt(ticket)+'</strong></div>'+
+   '<div class="card"><span class="label">N.º de ventas</span><strong>'+sales.length+'</strong></div>'+
+   '<div class="card"><span class="label">Producto más vendido</span><strong style="font-size:17px">'+(top?esc(top[0]):'—')+'</strong><span class="mini">'+(top?num(top[1])+' unidades':'Sin ventas')+'</span></div>';
+  const days={};let cur=new Date(from+'T12:00:00');const last=new Date(to+'T12:00:00');
+  while(cur<=last){const k=cur.getFullYear()+'-'+String(cur.getMonth()+1).padStart(2,'0')+'-'+String(cur.getDate()).padStart(2,'0');days[k]=0;cur.setDate(cur.getDate()+1);}
+  sales.forEach(x=>{const p=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Santiago',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(x.created_at));if(p in days)days[p]+=+x.total||0;});
+  const max=Math.max(1,...Object.values(days)),chart=document.getElementById('reportDailyChart');
+  if(chart)chart.innerHTML='<div class="mgr-chart">'+Object.entries(days).map(([d,v])=>'<div class="mgr-barcol"><div class="mgr-barvalue">'+fmt(v)+'</div><div class="mgr-bar" style="height:'+Math.max(3,v/max*115)+'px"></div><div class="mgr-barlabel">'+d.slice(8,10)+'/'+d.slice(5,7)+'</div></div>').join('')+'</div>';
+  const methods={};sales.forEach(x=>{const k=(x.metodo_pago||'otro').toLowerCase();methods[k]=(methods[k]||0)+(+x.total||0);});const pmax=Math.max(1,...Object.values(methods)),pc=document.getElementById('reportPaymentChart');
+  if(pc)pc.innerHTML=Object.entries(methods).sort((a,b)=>b[1]-a[1]).map(([k,v])=>'<div class="mgr-pay"><b>'+esc(k.charAt(0).toUpperCase()+k.slice(1))+'</b><div class="mgr-track"><div class="mgr-fill" style="width:'+(v/pmax*100)+'%"></div></div><b style="text-align:right">'+fmt(v)+'</b></div>').join('')||'<div class="empty">Sin ventas en el período</div>';
+ }catch(e){console.error('Manager report:',e);}
+};
 })();
 </script>
 \n</body></html>
